@@ -2,11 +2,431 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0e17">
     <title>Crypto Portfolio Tracker - Working Version</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* =========================================
+           MOBILE-FIRST RESPONSIVE ENHANCEMENTS
+           ========================================= */
+        
+        /* Touch-friendly defaults */
+        * {
+            -webkit-tap-highlight-color: rgba(56, 189, 248, 0.2);
+        }
+        
+        /* Safe area for notched devices */
+        .container {
+            padding-left: max(env(safe-area-inset-left), 16px);
+            padding-right: max(env(safe-area-inset-right), 16px);
+            padding-bottom: max(env(safe-area-inset-bottom), 24px);
+        }
+        
+        /* Mobile header optimizations */
+        @media (max-width: 640px) {
+            .header {
+                padding: 16px;
+                margin-bottom: 16px;
+                border-radius: 16px;
+            }
+            
+            .header h1 {
+                font-size: 1.1rem;
+                gap: 8px;
+            }
+            
+            .header h1 i {
+                font-size: 0.95rem;
+            }
+            
+            .total-value {
+                padding: 12px;
+                text-align: center;
+                width: 100%;
+            }
+            
+            .total-label {
+                font-size: 0.65rem;
+                letter-spacing: 0.1em;
+            }
+            
+            .total-amount {
+                font-size: 1.85rem;
+                line-height: 1.2;
+            }
+            
+            .total-change {
+                font-size: 0.85rem;
+                padding: 6px 12px;
+            }
+        }
+        
+        /* Mobile form layout */
+        @media (max-width: 640px) {
+            .add-coin-section {
+                padding: 16px;
+                border-radius: 16px;
+            }
+            
+            .add-coin-section h2 {
+                font-size: 1rem;
+                margin-bottom: 16px;
+            }
+            
+            .add-coin-form {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .form-group {
+                width: 100%;
+            }
+            
+            .form-group label {
+                font-size: 0.7rem;
+                margin-bottom: 6px;
+            }
+            
+            .form-group input {
+                padding: 14px 12px;
+                font-size: 16px; /* Prevents iOS zoom */
+                border-radius: 10px;
+                width: 100%;
+            }
+            
+            .add-coin-form .btn-primary {
+                width: 100%;
+                padding: 16px;
+                font-size: 1rem;
+                border-radius: 12px;
+                margin-top: 8px;
+            }
+        }
+        
+        /* Mobile portfolio controls - horizontal scroll */
+        @media (max-width: 640px) {
+            .portfolio-section {
+                padding: 16px;
+                border-radius: 16px;
+            }
+            
+            .portfolio-section h2 {
+                font-size: 1rem;
+                margin-bottom: 12px;
+            }
+            
+            .portfolio-controls {
+                display: flex;
+                gap: 8px;
+                overflow-x: auto;
+                padding-bottom: 8px;
+                margin-bottom: 16px;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .portfolio-controls::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .portfolio-controls .btn {
+                flex-shrink: 0;
+                padding: 10px 14px;
+                font-size: 0.75rem;
+                border-radius: 8px;
+                white-space: nowrap;
+            }
+            
+            .portfolio-controls .btn i {
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* Mobile table → Card layout transformation */
+        @media (max-width: 640px) {
+            .portfolio-table-container {
+                overflow: visible;
+                border: none;
+                background: transparent;
+                border-radius: 0;
+            }
+            
+            .portfolio-table {
+                display: block;
+                min-width: unset;
+            }
+            
+            .portfolio-table thead {
+                display: none;
+            }
+            
+            .portfolio-table tbody {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .portfolio-table tbody tr {
+                display: block;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-subtle);
+                border-radius: 14px;
+                padding: 14px;
+                transition: all 0.2s ease;
+            }
+            
+            .portfolio-table tbody tr:active {
+                transform: scale(0.98);
+                background: var(--bg-tertiary);
+            }
+            
+            .portfolio-table tbody tr td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0;
+                border: none;
+                font-size: 0.85rem;
+            }
+            
+            .portfolio-table tbody tr td:not(:last-child) {
+                border-bottom: 1px solid var(--border-subtle);
+            }
+            
+            .portfolio-table tbody tr td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                font-size: 0.7rem;
+                color: var(--text-tertiary);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                flex-shrink: 0;
+                margin-right: 12px;
+            }
+            
+            /* Coin info card header */
+            .portfolio-table tbody tr td:first-child {
+                justify-content: flex-start;
+                padding-bottom: 12px;
+                margin-bottom: 4px;
+            }
+            
+            .portfolio-table tbody tr td:first-child::before {
+                display: none;
+            }
+            
+            .coin-info {
+                width: 100%;
+            }
+            
+            .coin-symbol {
+                font-size: 1.1rem;
+            }
+            
+            /* Action button styling */
+            .portfolio-table tbody tr td:last-child {
+                justify-content: flex-end;
+                padding-top: 12px;
+                margin-top: 4px;
+            }
+            
+            .portfolio-table tbody tr td:last-child::before {
+                display: none;
+            }
+            
+            .portfolio-table tbody tr td:last-child .btn {
+                padding: 10px 18px;
+                font-size: 0.8rem;
+            }
+            
+            /* P&L styling in cards */
+            .pnl {
+                font-size: 0.85rem;
+                padding: 4px 10px;
+            }
+            
+            /* Empty state */
+            .empty-portfolio {
+                padding: 40px 20px;
+            }
+            
+            .empty-portfolio i {
+                font-size: 2.5rem;
+            }
+            
+            .empty-portfolio h3 {
+                font-size: 1.1rem;
+            }
+            
+            .empty-portfolio p {
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* Charts section mobile */
+        @media (max-width: 640px) {
+            .charts-section {
+                padding: 16px;
+                border-radius: 16px;
+            }
+            
+            .charts-section h2 {
+                font-size: 1rem;
+                margin-bottom: 16px;
+            }
+            
+            .charts-container {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .chart-wrapper {
+                padding: 12px;
+                background: var(--bg-tertiary);
+                border-radius: 12px;
+                border: 1px solid var(--border-subtle);
+            }
+            
+            .chart-wrapper h3 {
+                font-size: 0.85rem;
+                margin-bottom: 12px;
+                color: var(--text-secondary);
+            }
+            
+            .chart-wrapper canvas {
+                max-height: 200px;
+            }
+        }
+        
+        /* Pull to refresh indicator */
+        .pull-indicator {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 8px 16px;
+            border-radius: 0 0 12px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .pull-indicator.visible {
+            opacity: 1;
+        }
+        
+        /* Floating action button for mobile */
+        @media (max-width: 640px) {
+            .mobile-fab {
+                display: none; /* Enable if you want a floating add button */
+                position: fixed;
+                bottom: max(env(safe-area-inset-bottom, 20px), 20px);
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+                border: none;
+                border-radius: 50%;
+                color: var(--bg-primary);
+                font-size: 1.5rem;
+                cursor: pointer;
+                box-shadow: 0 4px 20px var(--accent-glow);
+                z-index: 100;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            
+            .mobile-fab:active {
+                transform: scale(0.92);
+            }
+        }
+        
+        /* Landscape mode optimizations */
+        @media (max-width: 896px) and (orientation: landscape) {
+            .header {
+                flex-direction: row;
+                align-items: center;
+            }
+            
+            .total-value {
+                text-align: right;
+            }
+            
+            .add-coin-form {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .form-group {
+                flex: 1;
+                min-width: 140px;
+            }
+            
+            .add-coin-form .btn-primary {
+                width: auto;
+                flex-shrink: 0;
+            }
+        }
+        
+        /* Very small screens (iPhone SE, etc.) */
+        @media (max-width: 375px) {
+            .header h1 {
+                font-size: 0.95rem;
+            }
+            
+            .total-amount {
+                font-size: 1.6rem;
+            }
+            
+            .portfolio-controls .btn {
+                padding: 8px 10px;
+                font-size: 0.7rem;
+            }
+            
+            .portfolio-table tbody tr td {
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .portfolio-table tbody tr {
+                border-width: 2px;
+            }
+            
+            .btn {
+                border-width: 2px;
+            }
+        }
+        
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Dark mode scrollbar for mobile Safari */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -373,33 +793,33 @@
                     
                     return `
                         <tr>
-                            <td>
+                            <td data-label="Coin">
                                 <div class="coin-info">
                                     <div>
                                         <div class="coin-symbol">${coin.symbol}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td>${coin.amount.toFixed(8)}</td>
-                            <td>${this.formatPrice(currentPrice)}</td>
-                            <td>${this.formatPrice(coin.averagePrice)}</td>
-                            <td class="price-value">${this.formatPrice(currentValue)}</td>
-                            <td>
+                            <td data-label="Amount">${coin.amount.toFixed(8)}</td>
+                            <td data-label="Current Price">${this.formatPrice(currentPrice)}</td>
+                            <td data-label="Purchase Price">${this.formatPrice(coin.averagePrice)}</td>
+                            <td data-label="Current Value" class="price-value">${this.formatPrice(currentValue)}</td>
+                            <td data-label="P&L">
                                 <div class="pnl ${pnl >= 0 ? 'positive' : 'negative'}">
                                     ${pnl >= 0 ? '+' : ''}${this.formatPrice(pnl).substring(1)}
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="P&L %">
                                 <div class="pnl ${pnlPercent >= 0 ? 'positive' : 'negative'}">
                                     ${pnlPercent >= 0 ? '+' : ''}${pnlPercent.toFixed(2)}%
                                 </div>
                             </td>
-                            <td class="note-cell">
+                            <td data-label="Note" class="note-cell">
                                 <span class="note-text" title="${coin.note || ''}">${coin.note || '-'}</span>
                             </td>
-                            <td>
+                            <td data-label="">
                                 <button class="btn btn-danger btn-sm" onclick="portfolio.removeCoin('${coin.symbol}', '${coin.note || ''}')">
-                                    <i class="fas fa-trash"></i>
+                                    <i class="fas fa-trash"></i> Remove
                                 </button>
                             </td>
                         </tr>

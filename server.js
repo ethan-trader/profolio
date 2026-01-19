@@ -7,8 +7,12 @@ const path = require('path');
 let redis = null;
 try {
     const { Redis } = require('@upstash/redis');
-    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-        redis = Redis.fromEnv();
+    // Upstash via Vercel uses KV_REST_API_URL format
+    if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+        redis = new Redis({
+            url: process.env.KV_REST_API_URL,
+            token: process.env.KV_REST_API_TOKEN,
+        });
         console.log('🔴 Running with Upstash Redis storage');
     }
 } catch (e) {
@@ -24,7 +28,7 @@ const TRANSACTIONS_FILE = path.join(DATA_DIR, 'transactions.json');
 const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');
 
 // Check if we're running on Vercel with Redis configured
-const isVercelKV = () => redis && process.env.UPSTASH_REDIS_REST_URL;
+const isVercelKV = () => redis && process.env.KV_REST_API_URL;
 
 // ============================================
 // Storage Abstraction Layer
