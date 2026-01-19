@@ -77,39 +77,61 @@ function getFilePath(key) {
     }
 }
 
-// Get all snapshot keys
-async function getAllSnapshotKeys() {
+// Get all snapshots - OPTIMIZED: single key instead of many
+async function getAllSnapshots() {
     if (isVercelKV()) {
-        // Get all keys matching snapshot:* pattern
-        const keys = await redis.keys('snapshot:*');
-        return keys;
+        // Single read from Redis - much more efficient!
+        const snapshots = await getData('snapshots', []);
+        return Array.isArray(snapshots) ? snapshots : [];
     } else {
-        // Filesystem fallback
+        // Filesystem fallback - read individual files
         if (!fs.existsSync(SNAPSHOT_DIR)) return [];
         const files = fs.readdirSync(SNAPSHOT_DIR).filter(f => f.endsWith('.json'));
-        return files.map(f => `snapshot:${f.replace('.json', '')}`);
+        const snapshots = [];
+        
+        for (const file of files) {
+            if (file.startsWith('snapshot-') && !file.startsWith('snapshots-')) {
+                const filePath = path.join(SNAPSHOT_DIR, file);
+                const data = fs.readFileSync(filePath, 'utf8');
+                snapshots.push(JSON.parse(data));
+            }
+        }
+        return snapshots;
     }
 }
 
-// Get all snapshots
-async function getAllSnapshots() {
-    const keys = await getAllSnapshotKeys();
-    const snapshots = [];
-    
-    for (const key of keys) {
-        const snapshot = await getData(key);
-        if (snapshot) {
+// Save a snapshot - OPTIMIZED: append to single array
+async function saveSnapshot(snapshot) {
+    if (isVercelKV()) {
+        // Get existing snapshots, append new one, save back
+        const snapshots = await getAllSnapshots();
+        
+        // Check if snapshot already exists (by id)
+        const existingIndex = snapshots.findIndex(s => s.id === snapshot.id);
+        if (existingIndex >= 0) {
+            snapshots[existingIndex] = snapshot;
+        } else {
             snapshots.push(snapshot);
         }
+        
+        await setData('snapshots', snapshots);
+    } else {
+        // Filesystem fallback - save individual files
+        const snapshotTimestamp = new Date(snapshot.timestamp).toISOString().replace(/[:.]/g, '-');
+        const filePath = path.join(SNAPSHOT_DIR, `snapshot-${snapshot.id}-${snapshotTimestamp}.json`);
+        fs.writeFileSync(filePath, JSON.stringify(snapshot, null, 2));
     }
-    
-    return snapshots;
 }
 
-// Save a snapshot
-async function saveSnapshot(snapshot) {
-    const key = `snapshot:snapshot-${snapshot.id}-${new Date(snapshot.timestamp).toISOString().replace(/[:.]/g, '-')}`;
-    await setData(key, snapshot);
+// Save multiple snapshots at once (for migration)
+async function saveAllSnapshots(snapshots) {
+    if (isVercelKV()) {
+        await setData('snapshots', snapshots);
+    } else {
+        for (const snapshot of snapshots) {
+            await saveSnapshot(snapshot);
+        }
+    }
 }
 
 // Password Protection Middleware
@@ -763,9 +785,8 @@ app.post('/api/migrate', async (req, res) => {
         }
         
         if (snapshots && Array.isArray(snapshots)) {
-            for (const snapshot of snapshots) {
-                await saveSnapshot(snapshot);
-            }
+            // Use optimized single-key storage
+            await saveAllSnapshots(snapshots);
             migrated.push(`snapshots (${snapshots.length} items)`);
         }
         
@@ -773,6 +794,60 @@ app.post('/api/migrate', async (req, res) => {
     } catch (error) {
         console.error('Error during migration:', error);
         res.status(500).json({ error: 'Migration failed: ' + error.message });
+    }
+});
+
+// Consolidate old snapshot:* keys into single snapshots key
+app.post('/api/consolidate-snapshots', async (req, res) => {
+    try {
+        if (!isVercelKV()) {
+            return res.status(400).json({ error: 'Consolidation only works on Vercel with KV configured' });
+        }
+        
+        // Get all old snapshot:* keys
+        const oldKeys = await redis.keys('snapshot:*');
+        
+        if (oldKeys.length === 0) {
+            return res.json({ success: true, message: 'No old snapshot keys to consolidate' });
+        }
+        
+        console.log(`Found ${oldKeys.length} old snapshot keys to consolidate`);
+        
+        // Read all old snapshots
+        const snapshots = [];
+        for (const key of oldKeys) {
+            const data = await redis.get(key);
+            if (data) {
+                const snapshot = typeof data === 'string' ? JSON.parse(data) : data;
+                snapshots.push(snapshot);
+            }
+        }
+        
+        // Get any existing snapshots in new format
+        const existingSnapshots = await getData('snapshots', []);
+        
+        // Merge (avoiding duplicates by id)
+        const existingIds = new Set(existingSnapshots.map(s => s.id));
+        const newSnapshots = snapshots.filter(s => !existingIds.has(s.id));
+        const allSnapshots = [...existingSnapshots, ...newSnapshots];
+        
+        // Save to single key
+        await setData('snapshots', allSnapshots);
+        
+        // Delete old keys
+        for (const key of oldKeys) {
+            await redis.del(key);
+        }
+        
+        res.json({ 
+            success: true, 
+            consolidated: oldKeys.length,
+            total: allSnapshots.length,
+            message: `Consolidated ${oldKeys.length} old keys into single 'snapshots' key`
+        });
+    } catch (error) {
+        console.error('Error during consolidation:', error);
+        res.status(500).json({ error: 'Consolidation failed: ' + error.message });
     }
 });
 
