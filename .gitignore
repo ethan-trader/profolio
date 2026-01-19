@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# Data folders (stored in Redis now)
+data/
+snapshot/
+
 # Backup folder (local only)
 backup/
 
