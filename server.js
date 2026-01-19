@@ -3,10 +3,14 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 
-// Vercel KV import (only available on Vercel)
-let kv = null;
+// Upstash Redis import (for Vercel deployment)
+let redis = null;
 try {
-    kv = require('@vercel/kv').kv;
+    const { Redis } = require('@upstash/redis');
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+        redis = Redis.fromEnv();
+        console.log('🔴 Running with Upstash Redis storage');
+    }
 } catch (e) {
     console.log('📁 Running in local mode (filesystem storage)');
 }
@@ -19,8 +23,8 @@ const PORTFOLIO_FILE = path.join(DATA_DIR, 'portfolio.json');
 const TRANSACTIONS_FILE = path.join(DATA_DIR, 'transactions.json');
 const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');
 
-// Check if we're running on Vercel with KV configured
-const isVercelKV = () => kv && process.env.KV_REST_API_URL;
+// Check if we're running on Vercel with Redis configured
+const isVercelKV = () => redis && process.env.UPSTASH_REDIS_REST_URL;
 
 // ============================================
 // Storage Abstraction Layer
@@ -28,8 +32,12 @@ const isVercelKV = () => kv && process.env.KV_REST_API_URL;
 
 async function getData(key, defaultValue = null) {
     if (isVercelKV()) {
-        const data = await kv.get(key);
-        return data !== null ? data : defaultValue;
+        const data = await redis.get(key);
+        // Upstash returns parsed JSON automatically for objects, but strings need parsing
+        if (data !== null) {
+            return typeof data === 'string' ? JSON.parse(data) : data;
+        }
+        return defaultValue;
     } else {
         // Filesystem fallback for local development
         const filePath = getFilePath(key);
@@ -43,7 +51,7 @@ async function getData(key, defaultValue = null) {
 
 async function setData(key, value) {
     if (isVercelKV()) {
-        await kv.set(key, value);
+        await redis.set(key, JSON.stringify(value));
     } else {
         // Filesystem fallback for local development
         const filePath = getFilePath(key);
@@ -69,7 +77,7 @@ function getFilePath(key) {
 async function getAllSnapshotKeys() {
     if (isVercelKV()) {
         // Get all keys matching snapshot:* pattern
-        const keys = await kv.keys('snapshot:*');
+        const keys = await redis.keys('snapshot:*');
         return keys;
     } else {
         // Filesystem fallback

@@ -11,7 +11,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "@vercel/kv": "^2.0.0"
+    "@upstash/redis": "^1.34.0"
   },
   "keywords": ["crypto", "portfolio", "tracker"],
   "author": "Your Name",
