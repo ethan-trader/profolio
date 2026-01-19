@@ -829,6 +829,20 @@
                 }
                 return originalFetch(url, options);
             };
+            
+            // Update all navigation links to include auth token
+            const token = localStorage.getItem('profolio_auth');
+            if (token) {
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.querySelectorAll('a.nav-link, .nav-links a').forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (href && !href.startsWith('http') && !href.includes('auth=')) {
+                            const separator = href.includes('?') ? '&' : '?';
+                            link.setAttribute('href', href + separator + 'auth=' + token);
+                        }
+                    });
+                });
+            }
         })();
 
         // Theme Toggle
