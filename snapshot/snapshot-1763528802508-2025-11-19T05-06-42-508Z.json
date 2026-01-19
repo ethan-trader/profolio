@@ -1,0 +1,165 @@
+{
+  "id": "1763528802508",
+  "timestamp": "2025-11-19T05:06:42.508Z",
+  "description": "Page Refresh",
+  "portfolio": [
+    {
+      "id": "USDC_default",
+      "symbol": "USDC",
+      "amount": 227615,
+      "purchasePrice": 1,
+      "totalCost": 227615,
+      "averagePrice": 1,
+      "note": ""
+    },
+    {
+      "id": "BTC_default",
+      "symbol": "BTC",
+      "amount": 1.6112,
+      "purchasePrice": 79380.8328954,
+      "totalCost": 145535.1898948745,
+      "averagePrice": 90327.20326146629,
+      "note": ""
+    },
+    {
+      "id": "ENA_airdrop",
+      "symbol": "ENA",
+      "amount": 270463,
+      "purchasePrice": 0.5182,
+      "totalCost": 140153.9266,
+      "averagePrice": 0.5182,
+      "note": "airdrop"
+    },
+    {
+      "id": "ETH_default",
+      "symbol": "ETH",
+      "amount": 11.4,
+      "purchasePrice": 2584,
+      "totalCost": 31667.600000000002,
+      "averagePrice": 2777.8596491228072,
+      "note": ""
+    },
+    {
+      "id": "SOL_default",
+      "symbol": "SOL",
+      "amount": 249,
+      "purchasePrice": 190.62,
+      "totalCost": 41723.5,
+      "averagePrice": 167.56425702811245,
+      "note": ""
+    },
+    {
+      "id": "LINK_default",
+      "symbol": "LINK",
+      "amount": 1683.6,
+      "purchasePrice": 22,
+      "totalCost": 27626.764604279182,
+      "averagePrice": 16.409339869493458,
+      "note": ""
+    },
+    {
+      "id": "BNB_default",
+      "symbol": "BNB",
+      "amount": 20,
+      "purchasePrice": 909,
+      "totalCost": 18180,
+      "averagePrice": 909,
+      "note": ""
+    },
+    {
+      "id": "FORM_default",
+      "symbol": "FORM",
+      "amount": 20000,
+      "purchasePrice": 0.68,
+      "totalCost": 13600.000000000002,
+      "averagePrice": 0.68,
+      "note": ""
+    },
+    {
+      "id": "HUMA_default",
+      "symbol": "HUMA",
+      "amount": 218374,
+      "purchasePrice": 0.035,
+      "totalCost": 7253.410085280864,
+      "averagePrice": 0.035,
+      "note": ""
+    },
+    {
+      "id": "S_default",
+      "symbol": "S",
+      "amount": 21488,
+      "purchasePrice": 0.31,
+      "totalCost": 6661.28,
+      "averagePrice": 0.31,
+      "note": ""
+    },
+    {
+      "id": "UNI_default",
+      "symbol": "UNI",
+      "amount": 105.21,
+      "purchasePrice": 7.5,
+      "totalCost": 748.8443238327687,
+      "averagePrice": 7.5,
+      "note": ""
+    },
+    {
+      "id": "USDE_Locked",
+      "symbol": "USDE",
+      "amount": 10700,
+      "purchasePrice": 0,
+      "totalCost": 0,
+      "averagePrice": 0,
+      "note": "Locked"
+    }
+  ],
+  "cryptoData": {
+    "BTC": {
+      "price": 91054,
+      "change24h": 1.3105001918262733
+    },
+    "ETH": {
+      "price": 3044.49,
+      "change24h": 1.61981180884146
+    },
+    "LINK": {
+      "price": 13.4,
+      "change24h": -0.24234969981398882
+    },
+    "SOL": {
+      "price": 138.59,
+      "change24h": 2.4435793209144134
+    },
+    "HUMA": {
+      "price": 0.02552827,
+      "change24h": 4.90587601819345
+    },
+    "S": {
+      "price": 0.121388,
+      "change24h": -0.07699906651469023
+    },
+    "ENA": {
+      "price": 0.272675,
+      "change24h": 4.038402468078146
+    },
+    "USDC": {
+      "price": 0.999875,
+      "change24h": 0.016758460765119703
+    },
+    "BNB": {
+      "price": 924.64,
+      "change24h": 2.2656560916047765
+    },
+    "UNI": {
+      "price": 7.23,
+      "change24h": -2.088324385987284
+    },
+    "FORM": {
+      "price": 0.414882,
+      "change24h": 10.688835351688018
+    }
+  },
+  "totalValue": 575551.79152698,
+  "totalCost": 605772.89,
+  "totalPnl": -30221.098473020014,
+  "totalPnlPercent": -4.988849612107932
+}

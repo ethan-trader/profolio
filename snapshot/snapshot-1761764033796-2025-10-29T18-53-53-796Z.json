@@ -1,0 +1,191 @@
+{
+  "id": "1761764033796",
+  "timestamp": "2025-10-29T18:53:53.796Z",
+  "description": "Page Refresh",
+  "portfolio": [
+    {
+      "id": "USDC_default",
+      "symbol": "USDC",
+      "amount": 366751.39,
+      "purchasePrice": 1,
+      "totalCost": 366751.39,
+      "averagePrice": 1,
+      "note": ""
+    },
+    {
+      "id": "ENA_airdrop",
+      "symbol": "ENA",
+      "amount": 270463,
+      "purchasePrice": 0.5182,
+      "totalCost": 140153.9266,
+      "averagePrice": 0.5182,
+      "note": "airdrop"
+    },
+    {
+      "id": "BTC_default",
+      "symbol": "BTC",
+      "amount": 1.0012,
+      "purchasePrice": 79380.8328954,
+      "totalCost": 79476.08989487449,
+      "averagePrice": 79380.8328954,
+      "note": ""
+    },
+    {
+      "id": "ETH_default",
+      "symbol": "ETH",
+      "amount": 6.4,
+      "purchasePrice": 2584,
+      "totalCost": 16537.600000000002,
+      "averagePrice": 2584,
+      "note": ""
+    },
+    {
+      "id": "SOL_default",
+      "symbol": "SOL",
+      "amount": 100,
+      "purchasePrice": 190.62,
+      "totalCost": 19062,
+      "averagePrice": 190.62,
+      "note": ""
+    },
+    {
+      "id": "HYPE_default",
+      "symbol": "HYPE",
+      "amount": 355,
+      "purchasePrice": 38.5,
+      "totalCost": 12970.667928884286,
+      "averagePrice": 38.5,
+      "note": ""
+    },
+    {
+      "id": "FORM_default",
+      "symbol": "FORM",
+      "amount": 20000,
+      "purchasePrice": 0.68,
+      "totalCost": 13600.000000000002,
+      "averagePrice": 0.68,
+      "note": ""
+    },
+    {
+      "id": "LINK_default",
+      "symbol": "LINK",
+      "amount": 483.6,
+      "purchasePrice": 22,
+      "totalCost": 10096.76460427918,
+      "averagePrice": 22,
+      "note": ""
+    },
+    {
+      "id": "HUMA_default",
+      "symbol": "HUMA",
+      "amount": 218374,
+      "purchasePrice": 0.035,
+      "totalCost": 7253.410085280864,
+      "averagePrice": 0.035,
+      "note": ""
+    },
+    {
+      "id": "S_default",
+      "symbol": "S",
+      "amount": 21488,
+      "purchasePrice": 0.31,
+      "totalCost": 6661.28,
+      "averagePrice": 0.31,
+      "note": ""
+    },
+    {
+      "id": "ASTER_airdrop",
+      "symbol": "ASTER",
+      "amount": 1650,
+      "purchasePrice": 0,
+      "totalCost": 0,
+      "averagePrice": 0,
+      "note": "airdrop"
+    },
+    {
+      "id": "UNI_default",
+      "symbol": "UNI",
+      "amount": 105.21,
+      "purchasePrice": 7.5,
+      "totalCost": 748.8443238327687,
+      "averagePrice": 7.5,
+      "note": ""
+    },
+    {
+      "id": "SYRUP_default",
+      "symbol": "SYRUP",
+      "amount": 543,
+      "purchasePrice": 0.35,
+      "totalCost": 190.04999999999998,
+      "averagePrice": 0.35,
+      "note": ""
+    },
+    {
+      "id": "USDE_Locked",
+      "symbol": "USDE",
+      "amount": 10700,
+      "purchasePrice": 0,
+      "totalCost": 0,
+      "averagePrice": 0,
+      "note": "Locked"
+    }
+  ],
+  "cryptoData": {
+    "BTC": {
+      "price": 110871,
+      "change24h": -3.4743612456890527
+    },
+    "ETH": {
+      "price": 3926.05,
+      "change24h": -4.6009829851635775
+    },
+    "LINK": {
+      "price": 18.05,
+      "change24h": -1.6637365228967815
+    },
+    "SOL": {
+      "price": 193.5,
+      "change24h": -2.934480175695166
+    },
+    "ASTER": {
+      "price": 1.039,
+      "change24h": -8.60574113613452
+    },
+    "HUMA": {
+      "price": 0.02621429,
+      "change24h": -7.467460592918289
+    },
+    "S": {
+      "price": 0.15791,
+      "change24h": -5.586481757404334
+    },
+    "ENA": {
+      "price": 0.449798,
+      "change24h": -3.788866491421034
+    },
+    "HYPE": {
+      "price": 47.56,
+      "change24h": 0.11418092774499113
+    },
+    "USDC": {
+      "price": 0.999805,
+      "change24h": -0.009650139366261303
+    },
+    "UNI": {
+      "price": 6.34,
+      "change24h": -2.8839354845480822
+    },
+    "FORM": {
+      "price": 0.628737,
+      "change24h": -6.829385418922368
+    },
+    "SYRUP": {
+      "price": 0.409314,
+      "change24h": 4.208710312949574
+    }
+  },
+  "totalValue": 693723.20349941,
+  "totalCost": 605772.89,
+  "totalPnl": 87950.31349940994,
+  "totalPnlPercent": 14.518694208882463
+}

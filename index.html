@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profolio – Crypto Portfolio Tracker</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#0a0e17">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-chart-pie"></i>
+                <span>Profolio</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link active"><i class="fas fa-wallet"></i> Portfolio</a></li>
+                <li><a href="/portfolio-history.html" class="nav-link"><i class="fas fa-chart-line"></i> History</a></li>
+                <li><a href="/projects.html" class="nav-link"><i class="fas fa-rocket"></i> Projects</a></li>
+            </ul>
+            <div class="theme-toggle">
+                <i class="fas fa-moon theme-toggle-icon moon"></i>
+                <i class="fas fa-sun theme-toggle-icon sun"></i>
+                <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle dark/light mode"></button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Header with integrated pie chart -->
+        <header class="header header-with-chart">
+            <div class="header-left">
+                <div class="header-top">
+                    <h1>
+                        <i class="fas fa-chart-pie"></i>
+                        Profolio
+                    </h1>
+                </div>
+                <div class="total-display">
+                    <div class="total-value">
+                        <span class="total-label">Portfolio Value</span>
+                        <span class="total-amount" id="totalValue">$0.00</span>
+                        <span class="total-change" id="totalChange">+0.00%</span>
+                    </div>
+                    <div class="total-cost">
+                        <span class="total-label">Total Cost</span>
+                        <span class="total-amount" id="totalCost">$0.00</span>
+                        <span class="total-change" style="visibility: hidden;">+0.00%</span>
+                    </div>
+                    <div class="total-gain">
+                        <span class="total-label">Gain/Loss</span>
+                        <span class="total-amount" id="totalGain">$0.00</span>
+                        <span class="total-change" id="totalGainPercent">+0.00%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-chart-wrapper">
+                <div class="header-chart">
+                    <canvas id="pieChart"></canvas>
+                </div>
+                <div class="top-holdings" id="topHoldings">
+                    <!-- Top 5 holdings will be populated here -->
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Portfolio Section -->
+            <section class="portfolio-section">
+                <h2>Your Portfolio</h2>
+                
+                <div class="portfolio-controls">
+                    <button id="refreshPrices" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                    <button id="addHistoryEntry" class="btn btn-secondary">
+                        <i class="fas fa-chart-line"></i>
+                        Add History
+                    </button>
+                    <button id="createSnapshot" class="btn btn-primary">
+                        <i class="fas fa-camera"></i>
+                        Snapshot
+                    </button>
+                    <button id="viewSnapshots" class="btn btn-secondary">
+                        <i class="fas fa-images"></i>
+                        Snapshots
+                    </button>
+                    <button id="portfolioHistory" class="btn btn-secondary">
+                        <i class="fas fa-chart-area"></i>
+                        History
+                    </button>
+                    <button id="loadLatestSnapshot" class="btn btn-primary">
+                        <i class="fas fa-undo"></i>
+                        Restore
+                    </button>
+                    <button id="exportData" class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        Export
+                    </button>
+                    <label for="importData" class="btn btn-secondary" style="cursor: pointer;">
+                        <i class="fas fa-upload"></i>
+                        Import
+                        <input type="file" id="importData" accept=".json" style="display: none;">
+                    </label>
+                    <button id="clearPortfolio" class="btn btn-danger">
+                        <i class="fas fa-trash"></i>
+                        Clear
+                    </button>
+                </div>
+                
+                <div class="portfolio-table-container">
+                    <table class="portfolio-table" id="portfolioTable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Coin
+                                    <div class="sort-buttons">
+                                        <button class="sort-btn" data-column="symbol" data-order="asc">↑</button>
+                                        <button class="sort-btn" data-column="symbol" data-order="desc">↓</button>
+                                    </div>
+                                </th>
+                                <th>
+                                    Amount
+                                    <div class="sort-buttons">
+                                        <button class="sort-btn" data-column="amount" data-order="asc">↑</button>
+                                        <button class="sort-btn" data-column="amount" data-order="desc">↓</button>
+                                    </div>
+                                </th>
+                                <th>
+                                    Price
+                                    <div class="sort-buttons">
+                                        <button class="sort-btn" data-column="currentPrice" data-order="asc">↑</button>
+                                        <button class="sort-btn" data-column="currentPrice" data-order="desc">↓</button>
+                                    </div>
+                                </th>
+                                <th>
+                                    Avg Cost
+                                    <div class="sort-buttons">
+                                        <button class="sort-btn" data-column="purchasePrice" data-order="asc">↑</button>
+                                        <button class="sort-btn" data-column="purchasePrice" data-order="desc">↓</button>
+                                    </div>
+                                </th>
+                                <th>
+                                    Value
+                                    <div class="sort-buttons">
+                                        <button class="sort-btn" data-column="currentValue" data-order="asc">↑</button>
+                                        <button class="sort-btn" data-column="currentValue" data-order="desc">↓</button>
+                                    </div>
+                                </th>
+                                <th>
+                                    Weight
+                                    <div class="sort-buttons">
+                                        <button class="sort-btn" data-column="valuePercent" data-order="asc">↑</button>
+                                        <button class="sort-btn" data-column="valuePercent" data-order="desc">↓</button>
+                                    </div>
+                                </th>
+                                <th>
+                                    P&L
+                                    <div class="sort-buttons">
+                                        <button class="sort-btn" data-column="pnl" data-order="asc">↑</button>
+                                        <button class="sort-btn" data-column="pnl" data-order="desc">↓</button>
+                                    </div>
+                                </th>
+                                <th>
+                                    P&L %
+                                    <div class="sort-buttons">
+                                        <button class="sort-btn" data-column="pnlPercent" data-order="asc">↑</button>
+                                        <button class="sort-btn" data-column="pnlPercent" data-order="desc">↓</button>
+                                    </div>
+                                </th>
+                                <th>Note</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portfolioBody">
+                            <!-- Portfolio entries will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Add Coin Section -->
+            <section class="add-coin-section">
+                <h2>Add New Asset</h2>
+                <form id="addCoinForm" class="add-coin-form">
+                    <div class="form-group">
+                        <label for="coinSymbol">Symbol</label>
+                        <input type="text" id="coinSymbol" placeholder="BTC" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="coinAmount">Amount</label>
+                        <input type="number" id="coinAmount" step="0.00000001" placeholder="0.00000000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="purchasePrice">Purchase Price (USD)</label>
+                        <input type="number" id="purchasePrice" step="0.00000001" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="note">Note (Optional)</label>
+                        <input type="text" id="note" placeholder="e.g., DCA, Airdrop" autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Add Asset
+                    </button>
+                </form>
+            </section>
+
+            <!-- Set Total Cost Section -->
+            <section class="set-total-cost-section">
+                <h2>Adjust Total Cost</h2>
+                <div class="set-total-cost-controls">
+                    <input type="number" id="newTotalCost" step="0.01" placeholder="Enter total cost" class="total-cost-input">
+                    <button id="setTotalCost" class="btn btn-warning">
+                        <i class="fas fa-edit"></i>
+                        Set Cost
+                    </button>
+                    <button id="resetTotalCost" class="btn btn-danger">
+                        <i class="fas fa-undo"></i>
+                        Reset
+                    </button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
