@@ -1527,25 +1527,131 @@ body::after {
         font-size: 1.25rem;
     }
     
-    .portfolio-table {
-        min-width: 600px;
-        font-size: 0.75rem;
+    /* Mobile card-based table layout */
+    .portfolio-table-container {
+        overflow: visible;
+        border: none;
+        background: transparent;
+        border-radius: 0;
     }
     
-    .coin-info {
+    .portfolio-table {
+        display: block;
+        min-width: unset;
+        table-layout: auto;
+    }
+    
+    .portfolio-table thead {
+        display: none;
+    }
+    
+    .portfolio-table tbody {
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .portfolio-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 12px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 12px;
+    }
+    
+    .portfolio-table tbody tr:active {
+        background: var(--bg-tertiary);
+    }
+    
+    .portfolio-table tbody tr td {
+        display: flex;
+        flex-direction: column;
+        padding: 4px 0;
+        border: none;
+        font-size: 0.8rem;
         gap: 2px;
     }
     
-    /* Hide more columns on mobile */
-    .portfolio-table th:nth-child(3), .portfolio-table td:nth-child(3) { display: none; }
-    .portfolio-table th:nth-child(5), .portfolio-table td:nth-child(5) { display: none; }
-    .portfolio-table th:nth-child(7), .portfolio-table td:nth-child(7) { display: none; }
+    .portfolio-table tbody tr td::before {
+        content: attr(data-label);
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
     
-    .summary-row td:nth-child(3) { display: none; }
-    .summary-row td:nth-child(5) { display: none; }
-    .summary-row td:nth-child(7) { display: none; }
+    /* First cell (Coin) - full width header style */
+    .portfolio-table tbody tr td:first-child {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 8px;
+        margin-bottom: 4px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .portfolio-table tbody tr td:first-child::before {
+        display: none;
+    }
+    
+    .coin-info {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .coin-symbol {
+        font-size: 1rem;
+        font-weight: 700;
+    }
+    
+    .coin-name {
+        font-size: 0.7rem;
+    }
+    
+    /* Actions cell - full width at bottom */
+    .portfolio-table tbody tr td:last-child {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: flex-end;
+        padding-top: 8px;
+        margin-top: 4px;
+        border-top: 1px solid var(--border-subtle);
+    }
+    
+    .portfolio-table tbody tr td:last-child::before {
+        display: none;
+    }
+    
+    .portfolio-table tbody tr td:last-child .btn {
+        padding: 8px 14px;
+        font-size: 0.75rem;
+    }
+    
+    /* Note cell - full width */
+    .portfolio-table tbody tr td.note-cell {
+        grid-column: 1 / -1;
+    }
+    
+    /* P&L badges */
+    .pnl {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+    }
+    
+    /* Price values */
+    .price-value {
+        font-size: 0.8rem;
+    }
+    
+    /* Value percent */
+    .value-percent {
+        font-size: 0.75rem;
+    }
     
     .snapshot-summary {
         grid-template-columns: 1fr;
@@ -1557,6 +1663,72 @@ body::after {
     
     .total-cost-input {
         width: 100%;
+    }
+    
+    /* Portfolio controls - horizontal scroll */
+    .portfolio-controls {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+    }
+    
+    .portfolio-controls::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .portfolio-controls .btn {
+        flex-shrink: 0;
+        padding: 8px 10px;
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+    
+    /* Form input sizing for iOS */
+    .form-group input {
+        font-size: 16px;
+    }
+    
+    /* Add coin form button */
+    .add-coin-form .btn-primary {
+        width: 100%;
+        padding: 14px;
+    }
+    
+    /* Hide summary row on mobile - totals shown in header */
+    .summary-row {
+        display: none !important;
+    }
+    
+    /* Navigation bar mobile */
+    .top-nav {
+        padding: 0 12px;
+    }
+    
+    .nav-brand span {
+        display: none;
+    }
+    
+    .nav-links {
+        gap: 4px;
+    }
+    
+    .nav-link {
+        padding: 8px 10px;
+        font-size: 0.75rem;
+    }
+    
+    .nav-link span {
+        display: none;
+    }
+    
+    .theme-toggle {
+        margin-left: 8px;
+        padding-left: 8px;
     }
 }
 

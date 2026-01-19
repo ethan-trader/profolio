@@ -618,7 +618,7 @@ class CryptoPortfolio {
 
             return `
                 <tr>
-                    <td>
+                    <td data-label="Coin">
                         <div class="coin-info">
                             <div>
                                 <div class="coin-symbol">${coin.symbol}</div>
@@ -626,34 +626,34 @@ class CryptoPortfolio {
                             </div>
                         </div>
                     </td>
-                    <td>${this.formatAmount(coin.amount)}</td>
-                    <td>
+                    <td data-label="Amount">${this.formatAmount(coin.amount)}</td>
+                    <td data-label="Price">
                         <div class="price-value">${this.formatPrice(currentPrice)}</div>
                         <div class="price-change ${change24h >= 0 ? 'positive' : 'negative'}">
                             ${change24h >= 0 ? '+' : ''}${change24h.toFixed(2)}%
                         </div>
                     </td>
-                    <td>${this.formatPrice(coin.averagePrice)}</td>
-                    <td class="price-value">${this.formatPrice(currentValue)}</td>
-                    <td>
+                    <td data-label="Avg Cost">${this.formatPrice(coin.averagePrice)}</td>
+                    <td data-label="Value" class="price-value">${this.formatPrice(currentValue)}</td>
+                    <td data-label="Weight">
                         <div class="value-percent">
                             ${valuePercent.toFixed(2)}%
                         </div>
                     </td>
-                    <td>
+                    <td data-label="P&L">
                         <div class="pnl ${pnl >= 0 ? 'positive' : 'negative'}">
                             ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}
                         </div>
                     </td>
-                    <td>
+                    <td data-label="P&L %">
                         <div class="pnl ${pnlPercent === 'N/A' ? 'neutral' : (pnlPercent >= 0 ? 'positive' : 'negative')}">
                             ${pnlPercent === 'N/A' ? 'N/A' : (pnlPercent >= 0 ? '+' : '') + pnlPercent.toFixed(2) + '%'}
                         </div>
                     </td>
-                    <td class="note-cell">
+                    <td data-label="Note" class="note-cell">
                         <span class="note-text" title="${coin.note || ''}">${coin.note || '-'}</span>
                     </td>
-                    <td>
+                    <td data-label="">
                         <button class="btn btn-danger btn-sm" onclick="portfolio.removeCoin('${coin.symbol}', '${coin.note || ''}')">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -677,24 +677,24 @@ class CryptoPortfolio {
 
         return `
             <tr class="summary-row">
-                <td><strong>Total</strong></td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="price-value"><strong>${this.formatPrice(totalPortfolioValue)}</strong></td>
-                <td><strong>100.00%</strong></td>
-                <td>
+                <td data-label=""><strong>Total</strong></td>
+                <td data-label="Amount">-</td>
+                <td data-label="Price">-</td>
+                <td data-label="Avg Cost">-</td>
+                <td data-label="Value" class="price-value"><strong>${this.formatPrice(totalPortfolioValue)}</strong></td>
+                <td data-label="Weight"><strong>100.00%</strong></td>
+                <td data-label="P&L">
                     <div class="pnl ${totalPnl >= 0 ? 'positive' : 'negative'}">
                         <strong>${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}</strong>
                     </div>
                 </td>
-                <td>
+                <td data-label="P&L %">
                     <div class="pnl ${totalPnlPercent === 'N/A' ? 'neutral' : (totalPnlPercent >= 0 ? 'positive' : 'negative')}">
                         <strong>${totalPnlPercent === 'N/A' ? 'N/A' : (totalPnlPercent >= 0 ? '+' : '') + totalPnlPercent.toFixed(2) + '%'}</strong>
                     </div>
                 </td>
-                <td>-</td>
-                <td>-</td>
+                <td data-label="Note">-</td>
+                <td data-label="">-</td>
             </tr>
         `;
     }
