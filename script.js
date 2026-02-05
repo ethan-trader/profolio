@@ -407,8 +407,8 @@ class CryptoPortfolio {
             return;
         }
 
-        if (amount <= 0 || purchasePrice < 0) {
-            this.showMessage('Amount must be positive and purchase price cannot be negative.', 'error');
+        if (amount === 0 || purchasePrice < 0) {
+            this.showMessage('Amount cannot be zero and purchase price cannot be negative.', 'error');
             return;
         }
 
