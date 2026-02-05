@@ -653,8 +653,8 @@
                     return;
                 }
                 
-                if (amount <= 0 || purchasePrice <= 0) {
-                    alert('Amount and price must be positive');
+                if (amount === 0 || purchasePrice <= 0) {
+                    alert('Amount cannot be zero and price must be positive');
                     return;
                 }
                 
@@ -679,7 +679,8 @@
                 this.updateTotalValue();
                 this.clearForm();
                 
-                alert(`${symbol} added successfully!`);
+                const action = amount > 0 ? 'bought' : 'sold';
+                alert(`${Math.abs(amount)} ${symbol} ${action} successfully!`);
             }
             
             async loadPortfolio() {
