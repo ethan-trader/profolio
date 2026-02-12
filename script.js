@@ -206,6 +206,10 @@ class CryptoPortfolio {
             window.open('/portfolio-history.html', '_blank');
         });
 
+        document.getElementById('viewTransactions').addEventListener('click', () => {
+            this.showTransactionsModal();
+        });
+
         document.getElementById('loadLatestSnapshot').addEventListener('click', async () => {
             const loaded = await this.loadLatestSnapshot();
             if (loaded) {
@@ -1902,6 +1906,112 @@ class CryptoPortfolio {
         });
 
         return modal;
+    }
+
+    async showTransactionsModal() {
+        let modal = document.getElementById('transactionsModal');
+        if (!modal) {
+            modal = this.createTransactionsModal();
+        }
+        await this.updateTransactionsModal();
+        modal.style.display = 'block';
+    }
+
+    createTransactionsModal() {
+        const modal = document.createElement('div');
+        modal.id = 'transactionsModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-list"></i> Transactions / 交易记录</h2>
+                    <span class="close" onclick="this.closest('.modal').style.display='none'">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="transactions-controls">
+                        <label for="transactionsSymbolFilter">Filter by symbol:</label>
+                        <input type="text" id="transactionsSymbolFilter" placeholder="e.g. BTC (leave empty for all)" class="transactions-filter-input">
+                        <button id="transactionsFilterApply" class="btn btn-primary"><i class="fas fa-filter"></i> Apply</button>
+                    </div>
+                    <div class="transactions-table-wrapper">
+                        <table class="portfolio-table transactions-table" id="transactionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Symbol</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                    <th>Note</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsBody"></tbody>
+                        </table>
+                    </div>
+                    <p class="transactions-hint">Only buy/sell actions from this app are recorded. To see BTC only, enter <strong>BTC</strong> in the filter and click Apply.</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.getElementById('transactionsSymbolFilter').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.updateTransactionsModal();
+        });
+        document.getElementById('transactionsFilterApply').addEventListener('click', () => {
+            this.updateTransactionsModal();
+        });
+        return modal;
+    }
+
+    async loadTransactions() {
+        try {
+            const response = await fetch('/api/transactions');
+            if (!response.ok) return [];
+            const data = await response.json();
+            return Array.isArray(data) ? data : [];
+        } catch (err) {
+            console.error('Error loading transactions:', err);
+            return [];
+        }
+    }
+
+    async updateTransactionsModal() {
+        const tbody = document.getElementById('transactionsBody');
+        const filterInput = document.getElementById('transactionsSymbolFilter');
+        if (!tbody) return;
+
+        const all = await this.loadTransactions();
+        const symbolFilter = (filterInput && filterInput.value.trim()) ? filterInput.value.trim().toUpperCase() : '';
+        let list = symbolFilter ? all.filter(t => (t.symbol || '').toUpperCase() === symbolFilter) : [...all];
+        list.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+
+        if (list.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="7" class="transactions-empty">
+                    ${symbolFilter ? `No transactions for ${symbolFilter}. Try "All" by clearing the filter.` : 'No transactions yet. Add or remove assets to record buy/sell history.'}
+                </td></tr>
+            `;
+            return;
+        }
+
+        const rows = list.map(t => {
+            const date = t.timestamp ? new Date(t.timestamp).toLocaleString() : '—';
+            const type = (t.type || 'buy').toLowerCase();
+            const typeClass = type === 'sell' ? 'tx-type-sell' : 'tx-type-buy';
+            return `
+                <tr>
+                    <td>${date}</td>
+                    <td><strong>${(t.symbol || '—')}</strong></td>
+                    <td><span class="${typeClass}">${type}</span></td>
+                    <td>${this.formatAmount(t.amount)}</td>
+                    <td>${this.formatPrice(t.purchasePrice)}</td>
+                    <td>${this.formatPrice(t.totalCost)}</td>
+                    <td>${(t.note || '—')}</td>
+                </tr>
+            `;
+        }).join('');
+        tbody.innerHTML = rows;
     }
 
     updateSnapshotsModal() {

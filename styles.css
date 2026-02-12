@@ -1218,6 +1218,62 @@ body::after {
     gap: var(--space-lg);
 }
 
+/* Transactions modal */
+.transactions-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.transactions-controls label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.transactions-filter-input {
+    flex: 1;
+    min-width: 180px;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
+
+.transactions-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: var(--space-md);
+}
+
+.transactions-table {
+    width: 100%;
+}
+
+.transactions-empty {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--text-tertiary);
+}
+
+.tx-type-buy {
+    color: var(--positive);
+    font-weight: 600;
+}
+
+.tx-type-sell {
+    color: var(--negative);
+    font-weight: 600;
+}
+
+.transactions-hint {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
 .empty-snapshots {
     text-align: center;
     padding: var(--space-2xl);
