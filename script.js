@@ -353,7 +353,8 @@ class CryptoPortfolio {
                 'STKPSTAKE': 'stkpstake',
                 'FORM': 'four',
                 'SYRUP': 'syrup',
-                'FF': 'falcon-finance-ff'
+                'FF': 'falcon-finance-ff',
+                'CHZ': 'chiliz'
             };
 
             // Get the CoinGecko IDs for the symbols in our portfolio
