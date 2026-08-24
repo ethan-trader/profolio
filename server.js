@@ -334,14 +334,35 @@ app.post('/logout', (req, res) => {
     res.json({ success: true });
 });
 
+// Keep-alive endpoint (before auth middleware, so the cron's CRON_SECRET
+// bearer token is not rejected by basicAuth). Upstash archives free databases
+// after prolonged inactivity, so this has to issue real Redis commands - a
+// response that never touches storage would not count as database activity.
+app.get('/api/keepalive', async (req, res) => {
+    const secret = process.env.CRON_SECRET;
+    if (!secret || req.headers.authorization !== `Bearer ${secret}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const portfolio = await getData('portfolio', []);
+        const at = new Date().toISOString();
+        await setData('heartbeat', { at, holdings: portfolio.length });
+        res.json({ ok: true, holdings: portfolio.length, at });
+    } catch (error) {
+        console.error('Keepalive failed:', error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
 // Apply auth middleware
 app.use(basicAuth);
 
 // Serve static files (after auth)
 app.use(express.static(__dirname));
 
-// Ensure data and snapshot directories exist (for local development)
-if (!isVercelKV()) {
+// Ensure data and snapshot directories exist (for local development only)
+if (!isVercelKV() && !process.env.VERCEL) {
     if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
     }
