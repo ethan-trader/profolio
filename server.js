@@ -434,13 +434,28 @@ app.post('/api/import', async (req, res) => {
 app.post('/api/snapshots', async (req, res) => {
     try {
         const snapshots = req.body;
-        
+        const skipped = [];
+        let saved = 0;
+
         for (const snapshot of snapshots) {
+            // A failed price lookup values every holding at zero, which would be
+            // stored as a genuine total wipeout and skew the history chart. Only
+            // reject that case, not a portfolio that is legitimately empty.
+            const claimsHoldings = (snapshot.portfolio && snapshot.portfolio.length > 0) || snapshot.totalCost > 0;
+            if (claimsHoldings && !(snapshot.totalValue > 0)) {
+                skipped.push(snapshot.id);
+                continue;
+            }
+
             await saveSnapshot(snapshot);
+            saved++;
         }
-        
-        console.log(`Saved ${snapshots.length} snapshots`);
-        res.json({ success: true, message: 'Snapshots saved successfully' });
+
+        if (skipped.length > 0) {
+            console.warn(`Skipped ${skipped.length} snapshot(s) with zero total value: ${skipped.join(', ')}`);
+        }
+        console.log(`Saved ${saved} snapshots`);
+        res.json({ success: true, saved, skipped: skipped.length, message: 'Snapshots saved successfully' });
     } catch (error) {
         console.error('Error saving snapshots:', error);
         res.status(500).json({ error: 'Failed to save snapshots' });
