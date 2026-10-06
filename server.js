@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -352,6 +353,85 @@ app.get('/api/keepalive', async (req, res) => {
     } catch (error) {
         console.error('Keepalive failed:', error);
         res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+// Trade ingest for automated bots (e.g. the BTC DCA bot). Sits before basicAuth and uses its own
+// BOT_API_KEY so the bot never needs the site password. One call applies a filled trade:
+//   base holding (e.g. BTC) += amount at `price`, quote holding (e.g. USDC) -= quoteAmount,
+//   plus a buy and a sell entry in transactions. Idempotent on `id`: a retried call is a no-op.
+function botAuthorized(req) {
+    const key = process.env.BOT_API_KEY;
+    const header = req.headers.authorization || '';
+    if (!key || !header.startsWith('Bearer ')) return false;
+    const given = Buffer.from(header.slice(7));
+    const expected = Buffer.from(key);
+    return given.length === expected.length && crypto.timingSafeEqual(given, expected);
+}
+
+// Same averaging as the UI's addCoin(): amount and totalCost move together, average follows.
+function applyToHolding(holding, amount, price) {
+    holding.amount += amount;
+    holding.totalCost += amount * price;
+    holding.averagePrice = holding.amount !== 0 ? holding.totalCost / holding.amount : price;
+    holding.purchasePrice = holding.averagePrice;
+}
+
+app.post('/api/trade', async (req, res) => {
+    if (!botAuthorized(req)) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { id, timestamp, symbol, amount, price, quoteSymbol, quoteAmount, note = '' } = req.body || {};
+    const nums = [amount, price, quoteAmount];
+    if (!id || !symbol || !quoteSymbol || nums.some(n => typeof n !== 'number' || !Number.isFinite(n) || n <= 0)) {
+        return res.status(400).json({ error: 'Required: id, symbol, quoteSymbol, and positive numbers amount, price, quoteAmount' });
+    }
+
+    try {
+        const transactions = await getData('transactions', []);
+        if (transactions.some(t => t.id === id)) {
+            return res.json({ success: true, duplicate: true });
+        }
+
+        const portfolio = await getData('portfolio', []);
+        const quote = portfolio.find(h => h.symbol === quoteSymbol && h.note === '');
+        if (!quote) {
+            return res.status(422).json({ error: `No ${quoteSymbol} holding (note '') to debit` });
+        }
+        let base = portfolio.find(h => h.symbol === symbol && h.note === '');
+        if (!base) {
+            base = { id: `${symbol}_default`, symbol, amount: 0, purchasePrice: price, totalCost: 0, averagePrice: price, note: '' };
+            portfolio.push(base);
+        }
+
+        applyToHolding(base, amount, price);
+        // Debit the quote at its own average cost so its average stays unchanged (stablecoin ~1).
+        const quoteCost = quote.averagePrice || 1;
+        applyToHolding(quote, -quoteAmount, quoteCost);
+
+        const at = timestamp || new Date().toISOString();
+        transactions.push(
+            { id, timestamp: at, symbol, amount, purchasePrice: price, totalCost: amount * price, note, type: 'buy' },
+            { id: `${id}-${quoteSymbol}`, timestamp: at, symbol: quoteSymbol, amount: quoteAmount,
+              purchasePrice: quoteCost, totalCost: quoteAmount * quoteCost, note, type: 'sell' }
+        );
+
+        // Holdings and the transaction (the idempotency record) must land together, otherwise a retry
+        // after a partial write would either double-apply the trade or silently drop it.
+        if (isVercelKV()) {
+            const tx = redis.multi();
+            tx.set('portfolio', JSON.stringify(portfolio));
+            tx.set('transactions', JSON.stringify(transactions));
+            await tx.exec();
+        } else {
+            await setData('portfolio', portfolio);
+            await setData('transactions', transactions);
+        }
+        res.json({ success: true, holdings: { [symbol]: base.amount, [quoteSymbol]: quote.amount } });
+    } catch (error) {
+        console.error('Trade ingest failed:', error);
+        res.status(500).json({ error: 'Failed to apply trade' });
     }
 });
 

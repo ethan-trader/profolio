@@ -68,6 +68,7 @@ vercel env pull .env.local
 | `KV_REST_API_TOKEN` | Upstash Redis REST token. |
 | `SITE_PASSWORD` | Password for the login gate. **Set this** — `server.js` falls back to a hardcoded default when it is missing. |
 | `CRON_SECRET` | Shared secret for the keep-alive cron. Vercel sends it automatically as `Authorization: Bearer <secret>`. |
+| `BOT_API_KEY` | Bearer key for `POST /api/trade` (trading bots). Unset = the endpoint rejects everything. |
 
 `KV_URL` and `REDIS_URL` are also stored for tooling but the app does not read them.
 
@@ -121,13 +122,14 @@ JSON files into Redis.
 
 ## API
 
-All routes except `/login` and `/api/keepalive` sit behind the password gate.
+All routes except `/login`, `/api/keepalive` and `/api/trade` sit behind the password gate.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `POST` | `/login` | Exchange the password for a token |
 | `POST` | `/logout` | Clear the auth cookie |
 | `GET` | `/api/keepalive` | Cron target; requires `CRON_SECRET` |
+| `POST` | `/api/trade` | Bot trade ingest; requires `BOT_API_KEY` (see below) |
 | `GET` `POST` | `/api/portfolio` | Read / write holdings |
 | `GET` `POST` | `/api/transactions` | Read / append transactions |
 | `GET` `POST` | `/api/projects` | Read / write projects |
@@ -171,3 +173,21 @@ profolio/
 ## License
 
 MIT
+
+## Bot trade ingest
+
+`POST /api/trade` with `Authorization: Bearer <BOT_API_KEY>` applies one filled trade in a single
+atomic Redis `MULTI`:
+
+```json
+{ "id": "binance-BTCUSDC-10402908348", "timestamp": "2026-09-24T19:59:23Z",
+  "symbol": "BTC", "amount": 0.00118, "price": 84337.07,
+  "quoteSymbol": "USDC", "quoteAmount": 99.5177426, "note": "DCA" }
+```
+
+- The `symbol` holding (note `''`) gains `amount` at `price`, averaged the same way as adding a coin in the UI.
+- The `quoteSymbol` holding (note `''`) loses `quoteAmount` at its own average cost. If it doesn't exist the request gets a `422`.
+- Two transactions are appended: a `buy` with id `id`, and a `sell` with id `id-<quoteSymbol>`.
+- A repeated `id` returns `{"success": true, "duplicate": true}` and changes nothing, so callers can retry safely.
+
+Used by the BTC DCA bot (`~/git/btc_binance_DCA`).
