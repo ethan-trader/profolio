@@ -136,6 +136,7 @@ All routes except `/login`, `/api/keepalive` and `/api/trade` sit behind the pas
 | `POST` | `/api/projects/tags` | Update project tags |
 | `GET` `POST` | `/api/snapshots` | Read all / save snapshots |
 | `GET` | `/api/latest-totalcost` | Total cost from the newest snapshot |
+| `GET` | `/api/cashflows` | Deposit/withdrawal ledger (Redis key `cashflows`, written with `redis-cli.js set`) |
 | `GET` | `/api/export` | Export current portfolio |
 | `GET` | `/api/export-history` | Export snapshot history |
 | `POST` | `/api/import` | Import portfolio data |

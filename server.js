@@ -552,6 +552,17 @@ app.get('/api/snapshots', async (req, res) => {
     }
 });
 
+// Deposit/withdrawal ledger; the running sum is the portfolio's cost basis
+app.get('/api/cashflows', async (req, res) => {
+    try {
+        const cashflows = await getData('cashflows', []);
+        res.json(cashflows);
+    } catch (error) {
+        console.error('Error reading cashflows:', error);
+        res.status(500).json({ error: 'Failed to read cashflows' });
+    }
+});
+
 // Get latest snapshot's totalCost
 app.get('/api/latest-totalcost', async (req, res) => {
     try {
