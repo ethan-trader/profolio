@@ -206,6 +206,29 @@
                 </div>
             </section>
 
+            <!-- Traditional Assets Section (filled by balances.js from /api/balances) -->
+            <section class="portfolio-section traditional-section">
+                <h2>Traditional Assets</h2>
+                <div class="traditional-alert" id="traditionalAlert" hidden></div>
+                <div class="traditional-summary" id="traditionalSummary"></div>
+                <div class="portfolio-table-container">
+                    <table class="portfolio-table traditional-table">
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Type</th>
+                                <th>Balance</th>
+                                <th>Gain/Loss</th>
+                                <th>Last Synced</th>
+                            </tr>
+                        </thead>
+                        <tbody id="traditionalBody">
+                            <tr><td colspan="5" class="traditional-empty">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             <!-- Add Coin Section -->
             <section class="add-coin-section">
                 <h2>Add New Asset</h2>
@@ -252,6 +275,8 @@
         </main>
     </div>
 
+    <script src="coin-ids.js"></script>
     <script src="script.js"></script>
+    <script src="balances.js"></script>
 </body>
 </html>

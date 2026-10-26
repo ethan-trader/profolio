@@ -10,7 +10,9 @@
           "styles.css",
           "script.js",
           "portfolio-history.html",
-          "projects.html"
+          "projects.html",
+          "coin-ids.js",
+          "balances.js"
         ]
       }
     }

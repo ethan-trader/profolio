@@ -68,7 +68,7 @@ vercel env pull .env.local
 | `KV_REST_API_TOKEN` | Upstash Redis REST token. |
 | `SITE_PASSWORD` | Password for the login gate. **Set this** — `server.js` falls back to a hardcoded default when it is missing. |
 | `CRON_SECRET` | Shared secret for the keep-alive cron. Vercel sends it automatically as `Authorization: Bearer <secret>`. |
-| `BOT_API_KEY` | Bearer key for `POST /api/trade` (trading bots). Unset = the endpoint rejects everything. |
+| `BOT_API_KEY` | Bearer key for `POST /api/trade` (trading bots) and `POST /api/balances` (NAS sync). Unset = the endpoint rejects everything. |
 
 `KV_URL` and `REDIS_URL` are also stored for tooling but the app does not read them.
 
@@ -122,7 +122,7 @@ JSON files into Redis.
 
 ## API
 
-All routes except `/login`, `/api/keepalive` and `/api/trade` sit behind the password gate.
+All routes except `/login`, `/api/keepalive`, `/api/trade` and `POST /api/balances` sit behind the password gate.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -130,6 +130,8 @@ All routes except `/login`, `/api/keepalive` and `/api/trade` sit behind the pas
 | `POST` | `/logout` | Clear the auth cookie |
 | `GET` | `/api/keepalive` | Cron target; requires `CRON_SECRET` |
 | `POST` | `/api/trade` | Bot trade ingest; requires `BOT_API_KEY` (see below) |
+| `POST` | `/api/balances` | Traditional-asset ingest from the NAS; requires `BOT_API_KEY` (see below) |
+| `GET` | `/api/balances` | Latest traditional balances (Redis key `balances`) |
 | `GET` `POST` | `/api/portfolio` | Read / write holdings |
 | `GET` `POST` | `/api/transactions` | Read / append transactions |
 | `GET` `POST` | `/api/projects` | Read / write projects |
@@ -192,3 +194,30 @@ atomic Redis `MULTI`:
 - A repeated `id` returns `{"success": true, "duplicate": true}` and changes nothing, so callers can retry safely.
 
 Used by the BTC DCA bot (`~/git/btc_binance_DCA`).
+
+## Traditional assets
+
+Bank, brokerage, retirement, property and loan balances are not fetched by profolio. The NAS
+service `profolio-sync` (`~/git/monarch_money/profolio_sync.py`) reads them from Monarch once a
+day at 07:00 ET and pushes them to `POST /api/balances` with `Authorization: Bearer <BOT_API_KEY>`:
+
+```json
+{ "asOf": "2026-10-27T11:00:00Z", "source": "monarch",
+  "accounts": [{ "id": "123", "name": "Roth IRA", "institution": "Fidelity", "type": "brokerage",
+                 "subtype": "Roth IRA", "isAsset": true, "isManual": false, "balance": 10000.43,
+                 "lastSyncedAt": "2026-10-27T08:13:10Z", "needsReconnect": false,
+                 "holdings": [{ "ticker": "VTI", "name": "Vanguard Total Stock", "type": "ETF",
+                                "quantity": 30, "price": 280.1, "value": 8403, "basis": 6100 }] }] }
+```
+
+- Balances are signed: assets positive, liabilities negative. A `basis` of `null` means unknown.
+- The payload replaces the `balances` key, then the server takes a `Daily Sync` snapshot (live
+  CoinGecko prices, same rules as the page), so history gets a point even on days nobody visits.
+  If prices can't be fetched, no snapshot is taken (`"snapshot": null`), but the balances are still stored.
+- Every snapshot, including the ones the page takes, gets `traditional` (`assets`, `liabilities`,
+  `net`, `byType`) and `netWorth` = crypto `totalValue` + traditional `net`. The crypto fields keep
+  their crypto-only meaning, so older history and the cash-flow cost basis still line up.
+- The homepage panel (`balances.js`) warns when a linked account needs reconnecting or hasn't synced
+  in 3 days, and when no push has arrived in 36 hours.
+
+The CoinGecko symbol map lives in `coin-ids.js`, shared by the page and the server.

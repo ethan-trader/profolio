@@ -242,120 +242,7 @@ class CryptoPortfolio {
         if (symbols.length === 0) return;
 
         try {
-            // Convert symbol to CoinGecko ID mapping
-            const symbolToId = {
-                'BTC': 'bitcoin',
-                'ETH': 'ethereum',
-                'ADA': 'cardano',
-                'DOT': 'polkadot',
-                'LINK': 'chainlink',
-                'LTC': 'litecoin',
-                'BCH': 'bitcoin-cash',
-                'XRP': 'ripple',
-                'DOGE': 'dogecoin',
-                'SHIB': 'shiba-inu',
-                'MATIC': 'matic-network',
-                'AVAX': 'avalanche-2',
-                'SOL': 'solana',
-                'ATOM': 'cosmos',
-                'ALGO': 'algorand',
-                'ASTER': 'aster-2',
-                'VET': 'vechain',
-                'FIL': 'filecoin',
-                'TRX': 'tron',
-                'EOS': 'eos',
-                'XLM': 'stellar',
-                'HUMA': 'huma-finance',
-                'S': 'sonic-3',
-                'ENA': 'ethena',
-                'HYPE': 'hyperliquid',
-                'USDC': 'usd-coin',
-                'USDT': 'tether',
-                'BNB': 'binancecoin',
-                'ARB': 'arbitrum',
-                'OP': 'optimism',
-                'UNI': 'uniswap',
-                'AAVE': 'aave',
-                'COMP': 'compound-governance-token',
-                'MKR': 'maker',
-                'CRV': 'curve-dao-token',
-                'SUSHI': 'sushi',
-                '1INCH': '1inch',
-                'YFI': 'yearn-finance',
-                'SNX': 'havven',
-                'BAL': 'balancer',
-                'LDO': 'lido-dao',
-                'RPL': 'rocket-pool',
-                'FXS': 'frax-share',
-                'FRAX': 'frax',
-                'LQTY': 'liquity',
-                'CVX': 'convex-finance',
-                'CRV': 'curve-dao-token',
-                'PENDLE': 'pendle',
-                'GMX': 'gmx',
-                'MAGIC': 'magic',
-                'RDNT': 'radiant-capital',
-                'GRAIL': 'camelot-token',
-                'JONES': 'jones-dao',
-                'DPX': 'dopex',
-                'PLS': 'plutusdao',
-                'UMAMI': 'umami-finance',
-                'Y2K': 'y2k',
-                'GMD': 'gmd-protocol',
-                'DOPEX': 'dopex',
-                'RND': 'random',
-                'VSTA': 'vesta-finance',
-                'HOP': 'hop-protocol',
-                'VELO': 'velodrome-finance',
-                'BEETS': 'beethoven-x',
-                'SPIRIT': 'spiritswap',
-                'BOO': 'spookyswap',
-                'TOMB': 'tomb',
-                'SPELL': 'spell-token',
-                'MIM': 'magic-internet-money',
-                'FTM': 'fantom',
-                'NEAR': 'near',
-                'FTT': 'ftx-token',
-                'LUNA': 'terra-luna',
-                'UST': 'terrausd',
-                'LUNC': 'terra-luna-classic',
-                'USTC': 'terrausd-classic',
-                'APT': 'aptos',
-                'SUI': 'sui',
-                'SEI': 'sei-network',
-                'TIA': 'celestia',
-                'INJ': 'injective-protocol',
-                'OSMO': 'osmosis',
-                'JUNO': 'juno-network',
-                'SCRT': 'secret',
-                'AKT': 'akash-network',
-                'REGEN': 'regen',
-                'IOV': 'starname',
-                'NGM': 'e-money',
-                'BAND': 'band-protocol',
-                'KAVA': 'kava',
-                'HARD': 'hard-protocol',
-                'SWP': 'kava-swap',
-                'XPRT': 'persistence',
-                'PSTAKE': 'pstake-finance',
-                'STKATOM': 'stkatom',
-                'STKOSMO': 'stkosmo',
-                'STKJUNO': 'stkjuno',
-                'STKSCRT': 'stksecret',
-                'STKREGEN': 'stkregen',
-                'STKIOV': 'stkiov',
-                'STKNGM': 'stkngm',
-                'STKBAND': 'stkband',
-                'STKKAVA': 'stkkava',
-                'STKHARD': 'stkhard',
-                'STKSWP': 'stkswp',
-                'STKXPRT': 'stkxprt',
-                'STKPSTAKE': 'stkpstake',
-                'FORM': 'four',
-                'SYRUP': 'syrup',
-                'FF': 'falcon-finance-ff',
-                'CHZ': 'chiliz'
-            };
+            const symbolToId = COINGECKO_IDS;
 
             // Get the CoinGecko IDs for the symbols in our portfolio
             const coinIds = symbols.map(symbol => symbolToId[symbol]).filter(id => id);
@@ -386,11 +273,7 @@ class CryptoPortfolio {
                 }
             }
 
-            // Assets with no CoinGecko listing, valued at a fixed USD price
-            const fixedPrices = {
-                'STRATE-YT': 1
-            };
-            for (const [symbol, price] of Object.entries(fixedPrices)) {
+            for (const [symbol, price] of Object.entries(FIXED_PRICES)) {
                 if (symbols.includes(symbol)) {
                     this.cryptoData[symbol] = { price, change24h: 0 };
                 }
@@ -754,6 +637,9 @@ class CryptoPortfolio {
 
         // Save portfolio history
         this.savePortfolioHistory(totalValue, totalCost, totalPnl, totalPnlPercent);
+
+        // Lets the traditional-assets panel (balances.js) show net worth including crypto
+        document.dispatchEvent(new CustomEvent('crypto-total', { detail: totalValue }));
     }
 
     savePortfolioHistory(totalValue, totalCost, totalPnl, totalPnlPercent) {

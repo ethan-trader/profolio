@@ -3,6 +3,7 @@ const cors = require('cors');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { COINGECKO_IDS, FIXED_PRICES } = require('./coin-ids');
 
 // Upstash Redis import (for Vercel deployment)
 let redis = null;
@@ -435,6 +436,136 @@ app.post('/api/trade', async (req, res) => {
     }
 });
 
+// Traditional (non-crypto) balances, pushed once a day by the NAS sync (monarch_money/profolio_sync.py).
+// Profolio only stores the latest push; it never talks to Monarch, so the data source can change freely.
+const isNum = n => typeof n === 'number' && Number.isFinite(n);
+const isNumOrNull = n => n === null || n === undefined || isNum(n);
+const isStrOrNull = s => s === null || s === undefined || typeof s === 'string';
+
+function validateBalances(body) {
+    if (!body || typeof body.asOf !== 'string' || isNaN(Date.parse(body.asOf))) return 'asOf must be an ISO timestamp';
+    if (!Array.isArray(body.accounts) || body.accounts.length === 0) return 'accounts must be a non-empty array';
+    for (const [i, a] of body.accounts.entries()) {
+        const where = `accounts[${i}]`;
+        if (!a || typeof a.id !== 'string' || typeof a.name !== 'string') return `${where}: id and name must be strings`;
+        if (typeof a.isAsset !== 'boolean' || !isNum(a.balance)) return `${where}: isAsset must be boolean, balance a finite number`;
+        if (!isStrOrNull(a.type) || !isStrOrNull(a.institution) || !isStrOrNull(a.lastSyncedAt)) return `${where}: type, institution, lastSyncedAt must be strings or null`;
+        if (a.holdings !== undefined && !Array.isArray(a.holdings)) return `${where}: holdings must be an array`;
+        for (const [j, h] of (a.holdings || []).entries()) {
+            if (!h || typeof h.name !== 'string' || !isNum(h.value)) return `${where}.holdings[${j}]: name and value required`;
+            if (![h.quantity, h.price, h.basis].every(isNumOrNull)) return `${where}.holdings[${j}]: quantity, price, basis must be numbers or null`;
+        }
+    }
+    return null;
+}
+
+// Totals stored on every snapshot. Balances are signed: assets positive, liabilities negative.
+function summarizeBalances(balances) {
+    const byType = {};
+    let assets = 0, liabilities = 0;
+    for (const a of balances.accounts) {
+        if (a.balance >= 0) assets += a.balance; else liabilities -= a.balance;
+        const type = a.type || 'other';
+        byType[type] = (byType[type] || 0) + a.balance;
+    }
+    return { asOf: balances.asOf, assets, liabilities, net: assets - liabilities, byType };
+}
+
+// Latest crypto prices for the given symbols, in the same shape the browser keeps in cryptoData.
+async function fetchCryptoPrices(symbols) {
+    const cryptoData = {};
+    const ids = symbols.map(s => COINGECKO_IDS[s]).filter(Boolean);
+    if (ids.length > 0) {
+        const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${[...new Set(ids)].join(',')}&vs_currencies=usd&include_24hr_change=true`,
+            { signal: AbortSignal.timeout(10000) });
+        if (!response.ok) throw new Error(`CoinGecko HTTP ${response.status}`);
+        const data = await response.json();
+        for (const symbol of symbols) {
+            const id = COINGECKO_IDS[symbol];
+            if (id && data[id]) cryptoData[symbol] = { price: data[id].usd, change24h: data[id].usd_24h_change || 0 };
+        }
+    }
+    for (const [symbol, price] of Object.entries(FIXED_PRICES)) {
+        if (symbols.includes(symbol)) cryptoData[symbol] = { price, change24h: 0 };
+    }
+    return cryptoData;
+}
+
+// Attach the traditional totals and the combined net worth to a snapshot. The crypto fields
+// (totalValue, totalCost, totalPnl...) keep their crypto-only meaning so existing history still lines up.
+function withTraditional(snapshot, balances) {
+    if (!balances || snapshot.traditional) return snapshot;
+    const traditional = summarizeBalances(balances);
+    return { ...snapshot, traditional, netWorth: (snapshot.totalValue || 0) + traditional.net };
+}
+
+// The same snapshot the page builds on refresh, but taken server-side so a day is recorded even when
+// nobody opens the site. Returns null (and records nothing) when crypto prices are unavailable.
+async function createServerSnapshot(description, balances) {
+    const portfolio = await getData('portfolio', []);
+    const symbols = [...new Set(portfolio.map(h => h.symbol))];
+    let cryptoData;
+    try {
+        cryptoData = await fetchCryptoPrices(symbols);
+    } catch (error) {
+        console.warn('Server snapshot skipped, price lookup failed:', error.message);
+        return null;
+    }
+
+    const totalValue = portfolio.reduce((sum, h) => sum + h.amount * (cryptoData[h.symbol]?.price || 0), 0);
+    if (portfolio.length > 0 && !(totalValue > 0)) return null;
+
+    // Like the page, prefer the total cost carried on the newest snapshot (it may have been set by hand).
+    const snapshots = await getAllSnapshots();
+    const latest = snapshots.reduce((a, b) => (!a || new Date(b.timestamp) > new Date(a.timestamp) ? b : a), null);
+    const totalCost = latest && latest.totalCost !== undefined
+        ? latest.totalCost
+        : portfolio.reduce((sum, h) => sum + h.totalCost, 0);
+    const projects = await getData('projects', { projects: [] });
+
+    const snapshot = withTraditional({
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        description,
+        portfolio,
+        cryptoData,
+        projects: projects.projects || [],
+        totalValue,
+        totalCost,
+        totalPnl: totalValue - totalCost,
+        totalPnlPercent: totalCost > 0 ? ((totalValue - totalCost) / totalCost) * 100 : 0
+    }, balances);
+    await saveSnapshot(snapshot);
+    return snapshot;
+}
+
+app.post('/api/balances', async (req, res) => {
+    if (!botAuthorized(req)) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const invalid = validateBalances(req.body);
+    if (invalid) {
+        return res.status(400).json({ error: invalid });
+    }
+
+    try {
+        const balances = { ...req.body, receivedAt: new Date().toISOString() };
+        await setData('balances', balances);
+
+        const snapshot = await createServerSnapshot('Daily Sync', balances);
+        const totals = summarizeBalances(balances);
+        res.json({
+            success: true,
+            accounts: balances.accounts.length,
+            net: totals.net,
+            snapshot: snapshot ? { id: snapshot.id, totalValue: snapshot.totalValue, netWorth: snapshot.netWorth } : null
+        });
+    } catch (error) {
+        console.error('Balances ingest failed:', error);
+        res.status(500).json({ error: 'Failed to store balances' });
+    }
+});
+
 // Apply auth middleware
 app.use(basicAuth);
 
@@ -514,10 +645,11 @@ app.post('/api/import', async (req, res) => {
 app.post('/api/snapshots', async (req, res) => {
     try {
         const snapshots = req.body;
+        const balances = await getData('balances', null);
         const skipped = [];
         let saved = 0;
 
-        for (const snapshot of snapshots) {
+        for (const snapshot of snapshots.map(s => withTraditional(s, balances))) {
             // A failed price lookup values every holding at zero, which would be
             // stored as a genuine total wipeout and skew the history chart. Only
             // reject that case, not a portfolio that is legitimately empty.
@@ -549,6 +681,17 @@ app.get('/api/snapshots', async (req, res) => {
     } catch (error) {
         console.error('Error loading snapshots:', error);
         res.status(500).json({ error: 'Failed to load snapshots' });
+    }
+});
+
+// Latest traditional balances pushed by the NAS sync (null until the first push)
+app.get('/api/balances', async (req, res) => {
+    try {
+        const balances = await getData('balances', null);
+        res.json(balances);
+    } catch (error) {
+        console.error('Error reading balances:', error);
+        res.status(500).json({ error: 'Failed to read balances' });
     }
 });
 

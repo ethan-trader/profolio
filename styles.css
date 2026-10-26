@@ -1818,3 +1818,90 @@ body::after {
         box-shadow: none;
     }
 }
+
+/* ============================================
+   Traditional assets (balances.js)
+   ============================================ */
+.traditional-alert {
+    background: var(--warning-bg);
+    color: var(--warning);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+    font-size: 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.traditional-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.traditional-tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+}
+
+.traditional-tile-value {
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.traditional-tile-value.negative { color: var(--negative); }
+.traditional-tile-value.accent { color: var(--accent-primary); }
+
+.traditional-table th,
+.traditional-table td { width: auto !important; }
+
+.traditional-table tr.expandable { cursor: pointer; }
+
+.traditional-chevron {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    transition: transform var(--transition-fast);
+}
+
+.traditional-table tr.open .traditional-chevron { transform: rotate(90deg); }
+
+.traditional-holding td {
+    background: var(--glass-highlight);
+    font-size: 0.85rem;
+}
+
+.traditional-holding td:first-child { padding-left: var(--space-xl); }
+
+.holding-ticker {
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
+.traditional-liability { color: var(--negative); }
+
+.traditional-stale { color: var(--warning); }
+
+.traditional-empty {
+    text-align: center;
+    color: var(--text-tertiary);
+    padding: var(--space-xl) !important;
+}
+
+@media (max-width: 1024px) {
+    .traditional-table { min-width: 0; }
+    .traditional-table th:nth-child(4), .traditional-table td:nth-child(4) { display: table-cell; }
+}
+
+@media (max-width: 480px) {
+    .traditional-table th:nth-child(4), .traditional-table td:nth-child(4) { display: flex; }
+    .traditional-holding td:first-child { padding-left: 0; }
+}
