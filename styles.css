@@ -1909,12 +1909,13 @@ body::after {
 
 /* ===== Investments page ===== */
 
-/* Category colors, validated as a 4-slot categorical palette against each theme's surface.
+/* Category colors, validated as a 5-slot categorical palette against each theme's surface.
    The light pair under 3:1 (cash, other) is always shown with its legend label and value. */
 :root {
     --cat-equity: #3987e5;
     --cat-crypto: #d95926;
     --cat-cash: #199e70;
+    --cat-real-estate: #9085e9;
     --cat-other: #c98500;
 }
 
@@ -1922,12 +1923,14 @@ body::after {
     --cat-equity: #2a78d6;
     --cat-crypto: #eb6834;
     --cat-cash: #1baf7a;
+    --cat-real-estate: #6250d6;
     --cat-other: #eda100;
 }
 
 .cat-equity { background: var(--cat-equity); }
 .cat-crypto { background: var(--cat-crypto); }
 .cat-cash { background: var(--cat-cash); }
+.cat-real-estate { background: var(--cat-real-estate); }
 .cat-other { background: var(--cat-other); }
 
 .allocation {
@@ -2156,3 +2159,8 @@ body::after {
     .traditional-holding td,
     .investment-position td { background: none; }
 }
+
+.investment-position td.traditional-liability { color: var(--negative); }
+
+/* .traditional-alert sets display, which beats the [hidden] default and left an empty bar with nothing to report */
+.traditional-alert[hidden] { display: none; }

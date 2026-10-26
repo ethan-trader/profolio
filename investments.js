@@ -1,4 +1,4 @@
-// Investments page: every investable position (bank cash, brokerage/retirement holdings, crypto)
+// Investments page: every position (bank cash, brokerage/retirement holdings, crypto, home equity)
 // merged into assets by asset-groups.js, with each asset's share and the accounts holding it.
 
 // Auth handling (same as the other pages): keep the token from ?auth= and send it on every fetch
@@ -58,6 +58,7 @@
         { id: 'equity', name: 'Stocks & Funds' },
         { id: 'crypto', name: 'Crypto' },
         { id: 'cash', name: 'Cash' },
+        { id: 'real-estate', name: 'Real Estate' },
         { id: 'other', name: 'Other' }
     ];
 
@@ -75,8 +76,15 @@
     function traditionalPositions(balances) {
         const positions = [];
         for (const a of balances.accounts) {
-            if (!a.isAsset || a.balance <= 0 || EXCLUDED_ACCOUNT_TYPES.includes(a.type)) continue;
+            if (EXCLUDED_ACCOUNT_TYPES.includes(a.type)) continue;
             const account = { account: a.name, institution: a.institution || (a.isManual ? 'Manual' : '') };
+            // A group can claim whole accounts by kind, liabilities included (the house and its mortgage).
+            if (ASSET_GROUPS.some(g => (g.accountTypes || []).includes(a.type) || (g.accountSubtypes || []).includes(a.subtype))) {
+                positions.push({ ...account, ticker: null, name: a.subtype || a.type, type: null, quantity: null, value: a.balance,
+                    accountType: a.type, accountSubtype: a.subtype });
+                continue;
+            }
+            if (!a.isAsset || a.balance <= 0) continue;
             if ((a.holdings || []).length > 0) {
                 a.holdings.forEach(h => positions.push({ ...account, ticker: h.ticker, name: h.name, type: h.type, quantity: h.quantity, value: h.value }));
             } else if (a.type === 'depository') {
@@ -109,7 +117,9 @@
             (g.tickers || []).includes(ticker) ||
             (g.holdingTypes || []).includes(position.type) ||
             (g.namePatterns || []).some(re => re.test(position.name || '')) ||
-            (position.unitemized && (g.accounts || []).includes(position.account))
+            (position.unitemized && (g.accounts || []).includes(position.account)) ||
+            (g.accountTypes || []).includes(position.accountType) ||
+            (g.accountSubtypes || []).includes(position.accountSubtype)
         );
     }
 
@@ -147,14 +157,16 @@
 
     function buildAssets(positions) {
         const assets = new Map();
-        for (const p of positions.filter(p => p.value >= MIN_POSITION_VALUE)) {
+        for (const p of positions.filter(p => Math.abs(p.value) >= MIN_POSITION_VALUE)) {
             const info = assetOf(p);
             if (!assets.has(info.key)) assets.set(info.key, { ...info, value: 0, positions: [] });
             const asset = assets.get(info.key);
             asset.value += p.value;
             asset.positions.push(p);
         }
+        // A net asset worth nothing or less (a house under water) has no share to draw, so it is left out.
         return [...assets.values()]
+            .filter(a => a.value > 0)
             .map(a => ({ ...a, positions: mergeByAccount(a.positions).sort((x, y) => y.value - x.value) }))
             .sort((a, b) => b.value - a.value);
     }
@@ -173,7 +185,7 @@
     function renderSummary(assets, total) {
         const largest = assets[0];
         const tiles = [
-            ['Investable Assets', money.format(total), 'accent'],
+            ['Total Value', money.format(total), 'accent'],
             ['Assets', String(assets.length), ''],
             ['Largest', largest ? `${largest.name} · ${pct((largest.value / total) * 100)}` : '—', '']
         ];
@@ -265,7 +277,7 @@
                 <span class="donut-center-value">${escapeHtml(value)}</span>
                 <span class="donut-center-sub">${escapeHtml(sub)}</span>`;
         };
-        const showTotal = () => showCenter('Investable', compactMoney.format(total), `${assets.length} assets`);
+        const showTotal = () => showCenter('Total', compactMoney.format(total), `${assets.length} assets`);
 
         const focus = match => {
             svg.classList.add('has-focus');
@@ -279,7 +291,7 @@
         const focusCategory = id => {
             const c = byCategory.find(x => x.id === id);
             focus(s => s.item.category === id);
-            showCenter(c.name, money.format(c.value), `${pct((c.value / total) * 100)} of investable`);
+            showCenter(c.name, money.format(c.value), `${pct((c.value / total) * 100)} of total`);
         };
 
         segments.forEach(s => {
@@ -287,7 +299,7 @@
             s.el.addEventListener('pointerenter', () => {
                 if (isCategory) return focusCategory(s.item.id);
                 focus(o => o === s || (o.ring === RINGS.inner && o.item.id === s.item.category));
-                showCenter(s.item.name, money.format(s.item.value), `${pct((s.item.value / total) * 100)} of investable`);
+                showCenter(s.item.name, money.format(s.item.value), `${pct((s.item.value / total) * 100)} of total`);
             });
             s.el.addEventListener('pointerleave', clearFocus);
             if (!isCategory && s.item.index !== undefined) {
@@ -334,8 +346,11 @@
     }
 
     function positionRows(asset, index) {
+        // In a net asset (house less mortgage) a part's share of the whole would read 290% and -190%.
+        const isNet = asset.positions.some(p => p.value < 0);
         return asset.positions.map(p => {
-            const tickers = p.tickers.filter(t => t !== asset.name).join(', ');
+            // No ticker (bank balance, house, mortgage): the account type says what the row is.
+            const tickers = p.tickers.length > 0 ? p.tickers.filter(t => t !== asset.name).join(', ') : p.name;
             const detail = [tickers, p.quantity != null ? qty.format(p.quantity) : null].filter(Boolean).join(' · ');
             return `
             <tr class="investment-position" data-asset="${index}" hidden>
@@ -345,8 +360,8 @@
                         <span class="coin-name">${escapeHtml(p.institution)}</span>
                     </div>
                 </td>
-                <td data-label="Value">${money.format(p.value)}</td>
-                <td data-label="Of Asset" class="coin-name">${pct((p.value / asset.value) * 100)}</td>
+                <td data-label="Value" class="${p.value < 0 ? 'traditional-liability' : ''}">${money.format(p.value)}</td>
+                <td data-label="Of Asset" class="coin-name">${isNet ? '' : pct((p.value / asset.value) * 100)}</td>
                 <td data-label="Holding" class="coin-name">${escapeHtml(detail)}</td>
             </tr>`;
         }).join('');

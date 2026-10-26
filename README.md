@@ -40,7 +40,7 @@ migration.
   retirement holdings, crypto) merged into assets, with each asset's share and the accounts that
   hold it. Merge rules live in `asset-groups.js`: a ticker listed in a group (e.g. VOO, VFIAX and
   VINIX under S&P 500; SPAXX and USDC under Cash) joins it, anything unlisted is its own asset.
-  The house and liabilities are left out.
+  Real Estate is home equity: the property less its mortgage. Other liabilities are left out.
 - **History** (`portfolio-history.html`) — total value and P&L over time, built from
   snapshots. Snapshots are captured on page refresh and on demand.
 - **Projects** (`projects.html`) — tracked projects with tags.

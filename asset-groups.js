@@ -2,7 +2,8 @@
 // its ticker (crypto symbol) or whose name pattern matches its name; anything unmatched is an asset
 // of its own, keyed by ticker. Add a ticker here when a new fund should fold into an existing asset.
 // `accounts` (Monarch display names) places accounts that have a balance but no holdings; once such an
-// account reports holdings, those are matched by ticker like any other.
+// account reports holdings, those are matched by ticker like any other. `accountTypes` and
+// `accountSubtypes` claim whole accounts by kind, liabilities included, so an asset can be a net value.
 const ASSET_GROUPS = [
     {
         id: 'cash',
@@ -27,6 +28,14 @@ const ASSET_GROUPS = [
         name: 'Nasdaq 100',
         category: 'equity',
         tickers: ['QQQ', 'QQQM']
+    },
+    {
+        id: 'real-estate',
+        name: 'Real Estate',
+        category: 'real-estate',
+        // Home equity: every property's value less its mortgage, each counted as a whole account balance
+        accountTypes: ['real_estate'],
+        accountSubtypes: ['Mortgage']
     }
 ];
 
@@ -38,6 +47,6 @@ const HOLDING_TYPE_CATEGORIES = {
     'Mutual Fund': 'equity'
 };
 
-// Account types that are not investments (the house) and never appear on the page. Liabilities are
-// dropped too, so the shares add up to the investable total.
-const EXCLUDED_ACCOUNT_TYPES = ['real_estate', 'vehicle', 'valuables'];
+// Account types that never appear on the page. Liabilities are dropped too (credit cards and other
+// loans), except the ones a group claims by `accountSubtypes`, like a mortgage under Real Estate.
+const EXCLUDED_ACCOUNT_TYPES = ['vehicle', 'valuables'];
