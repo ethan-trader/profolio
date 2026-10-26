@@ -116,7 +116,9 @@ const COINGECKO_IDS = {
 
 // Assets with no CoinGecko listing, valued at a fixed USD price
 const FIXED_PRICES = {
-    'STRATE-YT': 1
+    'STRATE-YT': 1,
+    // Valued at $0 by choice; the holding is locked
+    'USDE': 0
 };
 
 if (typeof module !== 'undefined') {

@@ -108,7 +108,8 @@
         return ASSET_GROUPS.find(g =>
             (g.tickers || []).includes(ticker) ||
             (g.holdingTypes || []).includes(position.type) ||
-            (g.namePatterns || []).some(re => re.test(position.name || ''))
+            (g.namePatterns || []).some(re => re.test(position.name || '')) ||
+            (position.unitemized && (g.accounts || []).includes(position.account))
         );
     }
 
@@ -164,7 +165,8 @@
             const name = asset.positions[0].name;
             return name && name !== asset.name ? name : '';
         }
-        const labels = [...new Set(asset.positions.flatMap(p => (p.tickers.length > 0 ? p.tickers : [p.name])))];
+        // Balance-only accounts have no security name, just the account type, so they add nothing here.
+        const labels = [...new Set(asset.positions.flatMap(p => (p.tickers.length > 0 ? p.tickers : p.unitemized ? [] : [p.name])))];
         return labels.length > 5 ? `${labels.slice(0, 5).join(', ')} +${labels.length - 5}` : labels.join(', ');
     }
 
