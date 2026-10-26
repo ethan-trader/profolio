@@ -386,6 +386,16 @@ class CryptoPortfolio {
                 }
             }
 
+            // Assets with no CoinGecko listing, valued at a fixed USD price
+            const fixedPrices = {
+                'STRATE-YT': 1
+            };
+            for (const [symbol, price] of Object.entries(fixedPrices)) {
+                if (symbols.includes(symbol)) {
+                    this.cryptoData[symbol] = { price, change24h: 0 };
+                }
+            }
+
             console.log('Final crypto data:', this.cryptoData);
             this.renderPortfolio();
             // Apply default sort to current value (descending) after prices are loaded
