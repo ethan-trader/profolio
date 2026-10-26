@@ -1932,27 +1932,133 @@ body::after {
 
 .allocation {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
+    align-items: center;
+    gap: var(--space-xl);
     margin-bottom: var(--space-lg);
 }
 
-.allocation-bar {
+.allocation-side {
+    flex: 1;
+    max-width: 440px;
     display: flex;
-    gap: 2px;
-    height: 16px;
-}
-
-.allocation-segment {
-    min-width: 2px;
-    border-radius: 4px;
+    flex-direction: column;
+    gap: var(--space-md);
+    min-width: 0;
 }
 
 .allocation-legend {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-sm) var(--space-lg);
-    font-size: 0.85rem;
+    flex-direction: column;
+    gap: var(--space-xs);
+    font-size: 0.9rem;
+}
+
+.allocation-legend-item {
+    padding: 6px var(--space-sm);
+    border-radius: 8px;
+    cursor: default;
+    transition: background var(--transition-fast);
+}
+
+.allocation-legend-item:hover { background: var(--glass-highlight); }
+
+.donut-hint {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+}
+
+/* Donut: inner ring categories, outer ring assets. Segments are stroked circles so the entrance can
+   sweep stroke-dasharray; color comes from currentColor so the hover glow matches the slice. */
+.donut-wrap {
+    position: relative;
+    flex: 0 0 auto;
+    width: 280px;
+    aspect-ratio: 1;
+}
+
+.donut {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.donut-segment {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 22;
+    transition: stroke-dasharray 900ms cubic-bezier(0.22, 1, 0.36, 1),
+                stroke-width var(--transition-fast), opacity var(--transition-fast), filter var(--transition-fast);
+}
+
+.donut-segment.clickable { cursor: pointer; }
+
+.donut.has-focus .donut-segment { opacity: 0.25; }
+
+.donut.has-focus .donut-segment.focus {
+    opacity: 1;
+    stroke-width: 28;
+    filter: drop-shadow(0 0 6px currentColor);
+}
+
+.donut-center {
+    position: absolute;
+    inset: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.donut-center-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.donut-center-value {
+    font-family: var(--font-mono);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.donut-center-sub {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.investment-asset.flash td { animation: row-flash 1.2s ease-out; }
+
+@keyframes row-flash {
+    from { background: var(--glass-border); }
+    to { background: transparent; }
+}
+
+@media (max-width: 768px) {
+    .allocation {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .donut-wrap {
+        width: min(280px, 100%);
+        align-self: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .donut-segment { transition: none; }
+    .investment-asset.flash td { animation: none; }
 }
 
 .allocation-legend-item {
@@ -1961,13 +2067,18 @@ body::after {
     gap: var(--space-sm);
 }
 
+.allocation-legend-value { margin-left: auto; }
+
 .allocation-swatch {
     width: 10px;
     height: 10px;
     border-radius: 3px;
 }
 
-.allocation-legend-name { color: var(--text-primary); }
+.allocation-legend-name {
+    color: var(--text-primary);
+    white-space: nowrap;
+}
 
 .allocation-legend-value {
     font-family: var(--font-mono);
@@ -2010,6 +2121,8 @@ body::after {
 .investment-position td:first-child { padding-left: var(--space-xl); }
 
 @media (max-width: 480px) {
+    .allocation-legend { font-size: 0.8rem; }
+    .allocation-legend-value { white-space: nowrap; }
     .investment-position td:first-child { padding-left: 0; }
     .share-cell { min-width: 0; }
 }

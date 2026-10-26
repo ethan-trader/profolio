@@ -182,23 +182,153 @@
             </div>`).join('');
     }
 
-    function renderAllocation(assets, total) {
-        const byCategory = CATEGORIES
+    // Two-ring donut: categories inside, their assets outside in steps of the category's hue.
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const DONUT_CENTER = 120;
+    const RINGS = { inner: 70, outer: 97 };
+    const SEGMENT_GAP = 2;
+    // Assets below this share fold into one slice per category, so the outer ring has no slivers.
+    const MIN_SLICE_SHARE = 0.01;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const compactMoney = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 2 });
+
+    function categoryTotals(assets) {
+        return CATEGORIES
             .map(c => ({ ...c, value: assets.filter(a => a.category === c.id).reduce((sum, a) => sum + a.value, 0) }))
             .filter(c => c.value > 0);
+    }
 
-        document.getElementById('allocationBar').innerHTML = byCategory.map(c => {
-            const share = (c.value / total) * 100;
-            return `<div class="allocation-segment cat-${c.id}" style="flex-basis: ${share}%"
-                        title="${escapeHtml(c.name)}: ${money.format(c.value)} (${pct(share)})"></div>`;
-        }).join('');
+    // Outer slices in category order, largest first within each; the smallest fold into "N smaller".
+    function outerSlices(assets, byCategory, total) {
+        return byCategory.flatMap(c => {
+            const members = assets.map((a, index) => ({ ...a, index })).filter(a => a.category === c.id);
+            const shown = members.filter(a => a.value / total >= MIN_SLICE_SHARE);
+            const folded = members.filter(a => a.value / total < MIN_SLICE_SHARE);
+            const slices = shown.map(a => ({ name: a.name, value: a.value, category: c.id, index: a.index }));
+            if (folded.length === 1) slices.push({ name: folded[0].name, value: folded[0].value, category: c.id, index: folded[0].index });
+            if (folded.length > 1) slices.push({ name: `${folded.length} smaller`, value: folded.reduce((s, a) => s + a.value, 0), category: c.id, folded: true });
+            return slices.map((s, rank) => ({ ...s, rank, of: slices.length }));
+        });
+    }
 
-        document.getElementById('allocationLegend').innerHTML = byCategory.map(c => `
-            <div class="allocation-legend-item">
+    // Lighter steps of the category hue toward the surface, so the outer ring reads as part of its category.
+    function outerColor(slice) {
+        const strength = slice.folded ? 40 : 100 - (slice.of > 1 ? (slice.rank / (slice.of - 1)) * 45 : 0);
+        return `color-mix(in oklab, var(--cat-${slice.category}) ${strength}%, var(--bg-secondary))`;
+    }
+
+    function arcSegment(radius, start, fraction, color) {
+        const circumference = 2 * Math.PI * radius;
+        const length = Math.max(fraction * circumference - SEGMENT_GAP, 0.5);
+        const el = document.createElementNS(SVG_NS, 'circle');
+        el.setAttribute('cx', DONUT_CENTER);
+        el.setAttribute('cy', DONUT_CENTER);
+        el.setAttribute('r', radius);
+        el.setAttribute('transform', `rotate(-90 ${DONUT_CENTER} ${DONUT_CENTER})`);
+        el.setAttribute('class', 'donut-segment');
+        el.style.color = color;
+        el.style.strokeDashoffset = -(start * circumference + SEGMENT_GAP / 2);
+        el.dataset.dash = `${length} ${circumference}`;
+        el.style.strokeDasharray = reducedMotion ? el.dataset.dash : `0 ${circumference}`;
+        return el;
+    }
+
+    function renderAllocation(assets, total) {
+        const byCategory = categoryTotals(assets);
+        const svg = document.getElementById('allocationDonut');
+        const center = document.getElementById('donutCenter');
+        const legend = document.getElementById('allocationLegend');
+        svg.innerHTML = '';
+
+        const segments = [];
+        const addRing = (radius, items, colorOf) => {
+            let start = 0;
+            for (const item of items) {
+                const fraction = item.value / total;
+                const el = arcSegment(radius, start, fraction, colorOf(item));
+                const title = document.createElementNS(SVG_NS, 'title');
+                title.textContent = `${item.name}: ${money.format(item.value)} (${pct(fraction * 100)})`;
+                el.appendChild(title);
+                svg.appendChild(el);
+                segments.push({ el, item, ring: radius });
+                start += fraction;
+            }
+        };
+        addRing(RINGS.inner, byCategory.map(c => ({ ...c, category: c.id })), c => `var(--cat-${c.id})`);
+        addRing(RINGS.outer, outerSlices(assets, byCategory, total), outerColor);
+
+        const showCenter = (label, value, sub) => {
+            center.innerHTML = `
+                <span class="donut-center-label">${escapeHtml(label)}</span>
+                <span class="donut-center-value">${escapeHtml(value)}</span>
+                <span class="donut-center-sub">${escapeHtml(sub)}</span>`;
+        };
+        const showTotal = () => showCenter('Investable', compactMoney.format(total), `${assets.length} assets`);
+
+        const focus = match => {
+            svg.classList.add('has-focus');
+            segments.forEach(s => s.el.classList.toggle('focus', match(s)));
+        };
+        const clearFocus = () => {
+            svg.classList.remove('has-focus');
+            segments.forEach(s => s.el.classList.remove('focus'));
+            showTotal();
+        };
+        const focusCategory = id => {
+            const c = byCategory.find(x => x.id === id);
+            focus(s => s.item.category === id);
+            showCenter(c.name, money.format(c.value), `${pct((c.value / total) * 100)} of investable`);
+        };
+
+        segments.forEach(s => {
+            const isCategory = s.ring === RINGS.inner;
+            s.el.addEventListener('pointerenter', () => {
+                if (isCategory) return focusCategory(s.item.id);
+                focus(o => o === s || (o.ring === RINGS.inner && o.item.id === s.item.category));
+                showCenter(s.item.name, money.format(s.item.value), `${pct((s.item.value / total) * 100)} of investable`);
+            });
+            s.el.addEventListener('pointerleave', clearFocus);
+            if (!isCategory && s.item.index !== undefined) {
+                s.el.classList.add('clickable');
+                s.el.addEventListener('click', () => openAsset(s.item.index));
+            }
+        });
+
+        legend.innerHTML = byCategory.map(c => `
+            <div class="allocation-legend-item" data-category="${c.id}">
                 <span class="allocation-swatch cat-${c.id}"></span>
                 <span class="allocation-legend-name">${escapeHtml(c.name)}</span>
                 <span class="allocation-legend-value">${money.format(c.value)} · ${pct((c.value / total) * 100)}</span>
             </div>`).join('');
+        legend.querySelectorAll('.allocation-legend-item').forEach(item => {
+            item.addEventListener('pointerenter', () => focusCategory(item.dataset.category));
+            item.addEventListener('pointerleave', clearFocus);
+        });
+
+        showTotal();
+        if (!reducedMotion) {
+            // Sweep the slices in one after another once the empty rings have painted.
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                segments.forEach((s, i) => {
+                    s.el.style.transitionDelay = `${i * 30}ms`;
+                    s.el.style.strokeDasharray = s.el.dataset.dash;
+                    // The stagger is only for the entrance; hover feedback must be immediate.
+                    s.el.addEventListener('transitionend', e => {
+                        if (e.propertyName === 'stroke-dasharray') s.el.style.transitionDelay = '';
+                    });
+                });
+            }));
+        }
+    }
+
+    function openAsset(index) {
+        const row = document.querySelector(`tr.investment-asset[data-index="${index}"]`);
+        if (!row) return;
+        if (!row.classList.contains('open')) row.click();
+        row.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+        row.classList.remove('flash');
+        void row.offsetWidth;
+        row.classList.add('flash');
     }
 
     function positionRows(asset, index) {

@@ -53,9 +53,16 @@
                 <div class="traditional-summary" id="investmentsSummary"></div>
 
                 <div class="allocation">
-                    <span class="total-label">Allocation</span>
-                    <div class="allocation-bar" id="allocationBar"></div>
-                    <div class="allocation-legend" id="allocationLegend"></div>
+                    <div class="donut-wrap">
+                        <svg class="donut" id="allocationDonut" viewBox="0 0 240 240" role="img"
+                             aria-label="Allocation: categories on the inner ring, assets on the outer ring"></svg>
+                        <div class="donut-center" id="donutCenter" aria-live="polite"></div>
+                    </div>
+                    <div class="allocation-side">
+                        <span class="total-label">Allocation</span>
+                        <div class="allocation-legend" id="allocationLegend"></div>
+                        <p class="donut-hint">Inner ring: category · outer ring: assets. Click an asset to open it below.</p>
+                    </div>
                 </div>
 
                 <div class="portfolio-table-container">
