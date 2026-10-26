@@ -772,6 +772,13 @@
                 justify-content: center;
             }
         }
+        /* Phone nav: icons only, except the current page so it stays labelled */
+        @media (max-width: 480px) {
+            .nav-brand span { display: none; }
+            .nav-links { gap: 4px; }
+            .nav-link { padding: 8px 10px; font-size: 0.75rem; }
+            .nav-link:not(.active) span { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -783,9 +790,10 @@
                 <span>Profolio</span>
             </div>
             <ul class="nav-links">
-                <li><a href="/" class="nav-link"><i class="fas fa-wallet"></i> Portfolio</a></li>
-                <li><a href="/portfolio-history.html" class="nav-link active"><i class="fas fa-chart-line"></i> History</a></li>
-                <li><a href="/projects.html" class="nav-link"><i class="fas fa-rocket"></i> Projects</a></li>
+                <li><a href="/" class="nav-link"><i class="fas fa-wallet"></i> <span>Portfolio</span></a></li>
+                <li><a href="/investments.html" class="nav-link"><i class="fas fa-layer-group"></i> <span>Investments</span></a></li>
+                <li><a href="/portfolio-history.html" class="nav-link active"><i class="fas fa-chart-line"></i> <span>History</span></a></li>
+                <li><a href="/projects.html" class="nav-link"><i class="fas fa-rocket"></i> <span>Projects</span></a></li>
             </ul>
             <div class="theme-toggle">
                 <i class="fas fa-moon theme-toggle-icon moon"></i>

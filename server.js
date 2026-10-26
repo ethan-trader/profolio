@@ -695,6 +695,17 @@ app.get('/api/balances', async (req, res) => {
     }
 });
 
+// Current prices for the crypto holdings, priced exactly like the server snapshot (used by the Investments page)
+app.get('/api/crypto-prices', async (req, res) => {
+    try {
+        const portfolio = await getData('portfolio', []);
+        res.json(await fetchCryptoPrices([...new Set(portfolio.map(h => h.symbol))]));
+    } catch (error) {
+        console.error('Error fetching crypto prices:', error);
+        res.status(502).json({ error: 'Failed to fetch crypto prices' });
+    }
+});
+
 // Deposit/withdrawal ledger; the running sum is the portfolio's cost basis
 app.get('/api/cashflows', async (req, res) => {
     try {

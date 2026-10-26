@@ -12,7 +12,10 @@
           "portfolio-history.html",
           "projects.html",
           "coin-ids.js",
-          "balances.js"
+          "balances.js",
+          "asset-groups.js",
+          "investments.html",
+          "investments.js"
         ]
       }
     }

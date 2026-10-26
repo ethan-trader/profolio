@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investments – Profolio</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#0a0e17">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-chart-pie"></i>
+                <span>Profolio</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link"><i class="fas fa-wallet"></i> <span>Portfolio</span></a></li>
+                <li><a href="/investments.html" class="nav-link active"><i class="fas fa-layer-group"></i> <span>Investments</span></a></li>
+                <li><a href="/portfolio-history.html" class="nav-link"><i class="fas fa-chart-line"></i> <span>History</span></a></li>
+                <li><a href="/projects.html" class="nav-link"><i class="fas fa-rocket"></i> <span>Projects</span></a></li>
+            </ul>
+            <div class="theme-toggle">
+                <i class="fas fa-moon theme-toggle-icon moon"></i>
+                <i class="fas fa-sun theme-toggle-icon sun"></i>
+                <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle dark/light mode"></button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <main>
+            <!-- Filled by investments.js: holdings merged into assets by asset-groups.js -->
+            <section class="portfolio-section investments-section">
+                <h2>Investments</h2>
+                <div class="traditional-alert" id="investmentsAlert" hidden></div>
+                <div class="traditional-summary" id="investmentsSummary"></div>
+
+                <div class="allocation">
+                    <span class="total-label">Allocation</span>
+                    <div class="allocation-bar" id="allocationBar"></div>
+                    <div class="allocation-legend" id="allocationLegend"></div>
+                </div>
+
+                <div class="portfolio-table-container">
+                    <table class="portfolio-table traditional-table investments-table">
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Value</th>
+                                <th>Share</th>
+                                <th>Accounts</th>
+                            </tr>
+                        </thead>
+                        <tbody id="investmentsBody">
+                            <tr><td colspan="4" class="traditional-empty">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="asset-groups.js"></script>
+    <script src="investments.js"></script>
+</body>
+</html>

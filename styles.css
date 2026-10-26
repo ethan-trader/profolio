@@ -1778,7 +1778,8 @@ body::after {
         font-size: 0.75rem;
     }
     
-    .nav-link span {
+    /* Icons only, except the current page so it stays labelled */
+    .nav-link:not(.active) span {
         display: none;
     }
     
@@ -1904,4 +1905,141 @@ body::after {
 @media (max-width: 480px) {
     .traditional-table th:nth-child(4), .traditional-table td:nth-child(4) { display: flex; }
     .traditional-holding td:first-child { padding-left: 0; }
+}
+
+/* ===== Investments page ===== */
+
+/* Category colors, validated as a 4-slot categorical palette against each theme's surface.
+   The light pair under 3:1 (cash, other) is always shown with its legend label and value. */
+:root {
+    --cat-equity: #3987e5;
+    --cat-crypto: #d95926;
+    --cat-cash: #199e70;
+    --cat-other: #c98500;
+}
+
+[data-theme="light"] {
+    --cat-equity: #2a78d6;
+    --cat-crypto: #eb6834;
+    --cat-cash: #1baf7a;
+    --cat-other: #eda100;
+}
+
+.cat-equity { background: var(--cat-equity); }
+.cat-crypto { background: var(--cat-crypto); }
+.cat-cash { background: var(--cat-cash); }
+.cat-other { background: var(--cat-other); }
+
+.allocation {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+}
+
+.allocation-bar {
+    display: flex;
+    gap: 2px;
+    height: 16px;
+}
+
+.allocation-segment {
+    min-width: 2px;
+    border-radius: 4px;
+}
+
+.allocation-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-lg);
+    font-size: 0.85rem;
+}
+
+.allocation-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.allocation-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+.allocation-legend-name { color: var(--text-primary); }
+
+.allocation-legend-value {
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+}
+
+.investments-table { min-width: 0; }
+
+.share-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    min-width: 140px;
+}
+
+.share-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+.share-fill {
+    height: 100%;
+    min-width: 2px;
+    border-radius: 4px;
+}
+
+.share-label {
+    font-family: var(--font-mono);
+    min-width: 3.5em;
+    text-align: right;
+}
+
+.investment-position td {
+    background: var(--glass-highlight);
+    font-size: 0.85rem;
+}
+
+.investment-position td:first-child { padding-left: var(--space-xl); }
+
+@media (max-width: 480px) {
+    .investment-position td:first-child { padding-left: 0; }
+    .share-cell { min-width: 0; }
+}
+
+@media (min-width: 481px) {
+    .investments-table th:nth-child(1), .investments-table td:nth-child(1) { width: 38% !important; }
+    .investments-table th:nth-child(2), .investments-table td:nth-child(2) { width: 16% !important; }
+    .investments-table th:nth-child(3), .investments-table td:nth-child(3) { width: 30% !important; }
+    .investments-table th:nth-child(4), .investments-table td:nth-child(4) { width: 16% !important; }
+}
+
+.investments-table .coin-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.investments-table .coin-symbol { white-space: nowrap; }
+
+.investment-asset .coin-name { padding-left: 1.1em; }
+
+/* The phone table layout sets `display: grid` on every row, which beats the [hidden] default and
+   left collapsed holdings showing. */
+.traditional-holding[hidden],
+.investment-position[hidden] { display: none !important; }
+
+@media (max-width: 480px) {
+    .portfolio-table tbody tr.traditional-holding,
+    .portfolio-table tbody tr.investment-position { background: var(--glass-highlight); }
+
+    .traditional-holding td,
+    .investment-position td { background: none; }
 }

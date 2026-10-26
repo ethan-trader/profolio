@@ -36,6 +36,11 @@ migration.
 - **Portfolio** (`index.html`) — holdings with cost basis, live CoinGecko prices, P&L per
   asset and in total, distribution and P&L charts. Negative amounts are allowed so sells
   can be recorded.
+- **Investments** (`investments.html`) — every investable position (bank cash, brokerage and
+  retirement holdings, crypto) merged into assets, with each asset's share and the accounts that
+  hold it. Merge rules live in `asset-groups.js`: a ticker listed in a group (e.g. VOO, VFIAX and
+  VINIX under S&P 500; SPAXX and USDC under Cash) joins it, anything unlisted is its own asset.
+  The house and liabilities are left out.
 - **History** (`portfolio-history.html`) — total value and P&L over time, built from
   snapshots. Snapshots are captured on page refresh and on demand.
 - **Projects** (`projects.html`) — tracked projects with tags.
@@ -132,6 +137,7 @@ All routes except `/login`, `/api/keepalive`, `/api/trade` and `POST /api/balanc
 | `POST` | `/api/trade` | Bot trade ingest; requires `BOT_API_KEY` (see below) |
 | `POST` | `/api/balances` | Traditional-asset ingest from the NAS; requires `BOT_API_KEY` (see below) |
 | `GET` | `/api/balances` | Latest traditional balances (Redis key `balances`) |
+| `GET` | `/api/crypto-prices` | Current prices for the crypto holdings (Investments page) |
 | `GET` `POST` | `/api/portfolio` | Read / write holdings |
 | `GET` `POST` | `/api/transactions` | Read / append transactions |
 | `GET` `POST` | `/api/projects` | Read / write projects |
