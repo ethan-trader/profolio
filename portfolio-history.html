@@ -347,18 +347,179 @@
             background: rgba(56, 189, 248, 0.1);
         }
         
-        /* Chart Container */
-        .chart-container {
+        /* Range Filter */
+        .range-bar {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            margin-bottom: 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+        }
+
+        .range-btn {
+            border: 0;
+            background: transparent;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .range-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .range-btn[aria-pressed="true"] {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Chart Card */
+        .chart-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
-            padding: 32px;
+            padding: 28px 32px 20px;
             margin-bottom: 24px;
-            position: relative;
-            height: 500px;
         }
-        
+
+        .chart-head {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .chart-kicker {
+            color: var(--text-tertiary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        .hero-value {
+            font-family: var(--font-body);
+            font-size: 2.75rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--text-primary);
+            margin-top: 4px;
+        }
+
+        .hero-delta {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            margin-top: 6px;
+        }
+
+        .hero-delta .muted {
+            color: var(--text-tertiary);
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .chart-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .key-line {
+            width: 16px;
+            height: 2px;
+            border-radius: 1px;
+        }
+
+        .key-dash {
+            width: 16px;
+            border-top: 2px dashed var(--text-tertiary);
+        }
+
+        .key-area {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 480px;
+        }
+
+        /* Data Table */
+        .table-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            margin-top: 24px;
+            overflow: hidden;
+        }
+
+        .table-card summary {
+            cursor: pointer;
+            padding: 16px 24px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .table-wrap {
+            max-height: 420px;
+            overflow: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 10px 24px;
+            text-align: right;
+            border-top: 1px solid var(--border-subtle);
+            white-space: nowrap;
+        }
+
+        .history-table th:first-child,
+        .history-table td:first-child {
+            text-align: left;
+        }
+
+        .history-table th {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            color: var(--text-tertiary);
+            font-family: var(--font-body);
+            font-weight: 600;
+        }
+
+        .history-table td {
+            color: var(--text-secondary);
+        }
+
         /* Stats Grid */
         .stats {
             display: grid;
@@ -555,9 +716,21 @@
                 display: inline-flex;
             }
             
+            .chart-card {
+                padding: 20px 16px 16px;
+            }
+
+            .hero-value {
+                font-size: 2rem;
+            }
+
             .chart-container {
-                height: 350px;
-                padding: 16px;
+                height: 380px;
+            }
+
+            .history-table th,
+            .history-table td {
+                padding: 8px 12px;
             }
             
             .stats {
@@ -652,15 +825,35 @@
                 </button>
             </div>
             
-            <div class="chart-container">
-                <canvas id="portfolioChart"></canvas>
+            <div class="range-bar" role="group" aria-label="Time range">
+                <button class="range-btn" data-range="1M">1M</button>
+                <button class="range-btn" data-range="3M">3M</button>
+                <button class="range-btn" data-range="6M">6M</button>
+                <button class="range-btn" data-range="YTD">YTD</button>
+                <button class="range-btn" data-range="ALL">All</button>
             </div>
-            
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="currentValue">$0</div>
-                    <div class="stat-label">Current Value</div>
+
+            <div class="chart-card">
+                <div class="chart-head">
+                    <div>
+                        <div class="chart-kicker">Portfolio value</div>
+                        <div class="hero-value" id="heroValue">$0</div>
+                        <div class="hero-delta" id="heroDelta"></div>
+                    </div>
+                    <div class="chart-legend" id="chartLegend">
+                        <span><i class="key-line" style="background: var(--accent-tertiary)"></i>Value</span>
+                        <span><i class="key-line" style="background: var(--text-tertiary)"></i>Cost basis</span>
+                        <span><i class="key-area" style="background: var(--positive-bg); border: 1px solid var(--positive)"></i>Gain %</span>
+                        <span><i class="key-area" style="background: var(--negative-bg); border: 1px solid var(--negative)"></i>Loss %</span>
+                        <span><i class="key-dash"></i>No snapshot 7+ days</span>
+                    </div>
                 </div>
+                <div class="chart-container">
+                    <canvas id="portfolioChart" role="img" aria-label="Portfolio value, cost basis and return over time"></canvas>
+                </div>
+            </div>
+
+            <div class="stats">
                 <div class="stat-card">
                     <div class="stat-value" id="totalGain">$0</div>
                     <div class="stat-label">Total Gain/Loss</div>
@@ -670,10 +863,26 @@
                     <div class="stat-label">Total Return</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="dataPoints">0</div>
-                    <div class="stat-label">Data Points</div>
+                    <div class="stat-value" id="peakPnl">$0</div>
+                    <div class="stat-label" id="peakPnlLabel">Peak P&amp;L</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="maxDrawdown">$0</div>
+                    <div class="stat-label" id="maxDrawdownLabel">Max Drawdown</div>
                 </div>
             </div>
+
+            <details class="table-card">
+                <summary>Daily data</summary>
+                <div class="table-wrap">
+                    <table class="history-table">
+                        <thead>
+                            <tr><th>Date</th><th>Value</th><th>Cost basis</th><th>P&amp;L</th><th>Return</th></tr>
+                        </thead>
+                        <tbody id="historyTableBody"></tbody>
+                    </table>
+                </div>
+            </details>
         </div>
     </div>
 
@@ -765,260 +974,342 @@
             }
         }
 
+        const DAY_MS = 24 * 60 * 60 * 1000;
+        // Consecutive daily points further apart than this are drawn dashed: no snapshot in between
+        const GAP_DAYS = 7;
+        const RANGE_MONTHS = { '1M': 1, '3M': 3, '6M': 6 };
+
+        let dailyData = [];
+        let currentRange = 'ALL';
+
+        // Keep the last snapshot of each day; intraday refreshes are noise at this scale
+        function toDaily(data) {
+            const byDay = new Map();
+            for (const item of data) {
+                byDay.set(item.timestamp.toDateString(), item);
+            }
+            return [...byDay.values()];
+        }
+
+        function rangeSlice(range) {
+            if (range === 'ALL') return dailyData;
+            const start = new Date();
+            if (range === 'YTD') {
+                start.setMonth(0, 1);
+                start.setHours(0, 0, 0, 0);
+            } else {
+                start.setMonth(start.getMonth() - RANGE_MONTHS[range]);
+            }
+            const slice = dailyData.filter(d => d.timestamp >= start);
+            // A line needs two points; fall back to the latest pair when the range is sparse
+            return slice.length >= 2 ? slice : dailyData.slice(-2);
+        }
+
+        function rangeLabel(range) {
+            return range === 'ALL' ? 'all time' : range;
+        }
+
+        const fmtUsd = n => `${n < 0 ? '-' : ''}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+        const fmtSignedUsd = n => `${n >= 0 ? '+' : '-'}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+        const fmtPct = n => `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
+        const fmtCompact = n => '$' + new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+        const fmtDate = d => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+        function alpha(hex, a) {
+            const n = parseInt(hex.replace('#', ''), 16);
+            return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+        }
+
+        // Chart colors come from the page tokens so they follow the light/dark toggle
+        function themeColors() {
+            const css = getComputedStyle(document.documentElement);
+            const v = name => css.getPropertyValue(name).trim();
+            return {
+                value: v('--accent-tertiary'),
+                cost: v('--text-tertiary'),
+                positive: v('--positive'),
+                negative: v('--negative'),
+                text: v('--text-primary'),
+                textSecondary: v('--text-secondary'),
+                muted: v('--text-tertiary'),
+                grid: v('--border-subtle'),
+                baseline: v('--border-default'),
+                surface: v('--bg-secondary')
+            };
+        }
+
+        const isGap = ctx => ctx.p1.parsed.x - ctx.p0.parsed.x > GAP_DAYS * DAY_MS;
+
+        // Vertical hairline at the hovered date, spanning both panels
+        const crosshair = {
+            id: 'crosshair',
+            afterDatasetsDraw(chart, args, opts) {
+                const active = chart.tooltip?.getActiveElements();
+                if (!active?.length) return;
+                const x = active[0].element.x;
+                const { top, bottom } = chart.chartArea;
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(x, top);
+                ctx.lineTo(x, bottom);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = opts.color;
+                ctx.stroke();
+                ctx.restore();
+            }
+        };
+
+        function valueGradient(context, color) {
+            const { chart } = context;
+            if (!chart.chartArea) return 'transparent';
+            const scale = chart.scales.y;
+            const gradient = chart.ctx.createLinearGradient(0, scale.top, 0, scale.bottom);
+            gradient.addColorStop(0, alpha(color, 0.18));
+            gradient.addColorStop(1, alpha(color, 0));
+            return gradient;
+        }
+
         function createChart() {
+            const c = themeColors();
             const ctx = document.getElementById('portfolioChart').getContext('2d');
-            
-            // Create data points with {x: timestamp (ms), y: value} format for proper time scaling
-            const valueData = portfolioData.map(item => ({
-                x: item.timestamp.getTime(),
-                y: item.totalValue
-            }));
-            
-            const costData = portfolioData.map(item => ({
-                x: item.timestamp.getTime(),
-                y: item.totalCost
-            }));
-            
-            const gainData = portfolioData.map(item => ({
-                x: item.timestamp.getTime(),
-                y: item.totalPnl
-            }));
-            
+            const tickFont = { family: "'JetBrains Mono', monospace", size: 10 };
+            const signColor = (y, pos, neg) => (y >= 0 ? pos : neg);
+
             chart = new Chart(ctx, {
                 type: 'line',
+                plugins: [crosshair],
                 data: {
                     datasets: [
                         {
-                            label: 'Portfolio Value',
-                            data: valueData,
-                            borderColor: '#38bdf8',
-                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: '#38bdf8',
-                            pointBorderColor: '#0ea5e9',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            pointHoverBackgroundColor: '#22d3ee'
-                        },
-                        {
-                            label: 'Total Cost',
-                            data: costData,
-                            borderColor: '#f43f5e',
-                            backgroundColor: 'rgba(244, 63, 94, 0.05)',
+                            label: 'Value',
+                            yAxisID: 'y',
+                            data: [],
+                            borderColor: c.value,
                             borderWidth: 2,
-                            fill: false,
-                            tension: 0.4,
-                            borderDash: [5, 5],
-                            pointBackgroundColor: '#f43f5e',
-                            pointBorderColor: '#e11d48',
+                            backgroundColor: context => valueGradient(context, c.value),
+                            fill: 'start',
+                            cubicInterpolationMode: 'monotone',
+                            // Only the latest point carries a marker
+                            pointRadius: context => (context.dataIndex === context.dataset.data.length - 1 ? 4 : 0),
+                            pointBackgroundColor: c.value,
+                            pointBorderColor: c.surface,
                             pointBorderWidth: 2,
-                            pointRadius: 3,
-                            pointHoverRadius: 5
-                        },
-                        {
-                            label: 'Gain/Loss',
-                            data: gainData,
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.4,
-                            pointBackgroundColor: '#10b981',
-                            pointBorderColor: '#059669',
-                            pointBorderWidth: 2,
-                            pointRadius: 3,
                             pointHoverRadius: 5,
-                            yAxisID: 'y1'
+                            pointHoverBorderWidth: 2,
+                            segment: { borderDash: context => (isGap(context) ? [4, 4] : undefined) }
+                        },
+                        {
+                            label: 'Cost basis',
+                            yAxisID: 'y',
+                            data: [],
+                            borderColor: c.cost,
+                            borderWidth: 1.5,
+                            stepped: 'after',
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            pointBackgroundColor: c.cost,
+                            pointBorderColor: c.surface,
+                            pointHoverBorderWidth: 2
+                        },
+                        {
+                            label: 'Return',
+                            yAxisID: 'yPnl',
+                            data: [],
+                            borderWidth: 1.5,
+                            borderColor: c.positive,
+                            fill: { target: { value: 0 }, above: alpha(c.positive, 0.15), below: alpha(c.negative, 0.15) },
+                            cubicInterpolationMode: 'monotone',
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            pointBackgroundColor: context => signColor(context.raw?.y ?? 0, c.positive, c.negative),
+                            pointBorderColor: c.surface,
+                            pointHoverBorderWidth: 2,
+                            segment: {
+                                borderColor: context => signColor(context.p1.parsed.y, c.positive, c.negative),
+                                borderDash: context => (isGap(context) ? [4, 4] : undefined)
+                            }
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    parsing: {
-                        xAxisKey: 'x',
-                        yAxisKey: 'y'
-                    },
+                    interaction: { mode: 'index', intersect: false },
+                    animation: { duration: 400 },
                     plugins: {
-                        title: {
-                            display: false
-                        },
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                padding: 20,
-                                font: {
-                                    family: "'JetBrains Mono', monospace",
-                                    size: 11,
-                                    weight: 500
-                                },
-                                color: '#94a3b8'
-                            }
-                        },
+                        legend: { display: false },
+                        crosshair: { color: c.baseline },
                         tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                            titleColor: '#f1f5f9',
-                            bodyColor: '#94a3b8',
-                            borderColor: 'rgba(56, 189, 248, 0.3)',
+                            backgroundColor: c.surface,
+                            titleColor: c.text,
+                            bodyColor: c.textSecondary,
+                            borderColor: c.baseline,
                             borderWidth: 1,
                             cornerRadius: 8,
                             padding: 12,
-                            titleFont: {
-                                family: "'JetBrains Mono', monospace",
-                                size: 12,
-                                weight: 600
-                            },
-                            bodyFont: {
-                                family: "'JetBrains Mono', monospace",
-                                size: 11
-                            },
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            titleFont: { family: "'DM Sans', sans-serif", size: 12, weight: 600 },
+                            bodyFont: { family: "'JetBrains Mono', monospace", size: 11 },
                             callbacks: {
-                                label: function(context) {
-                                    const value = context.parsed.y;
-                                    const label = context.dataset.label;
-                                    const prefix = value >= 0 ? '' : '';
-                                    return ` ${label}: $${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                                title: items => fmtDate(new Date(items[0].parsed.x)),
+                                label: item => {
+                                    const d = item.raw.d;
+                                    if (item.datasetIndex === 0) return `${fmtUsd(d.totalValue)}  Value`;
+                                    if (item.datasetIndex === 1) return `${fmtUsd(d.totalCost)}  Cost basis`;
+                                    return `${fmtSignedUsd(d.totalPnl)} (${fmtPct(item.parsed.y)})  P&L`;
+                                },
+                                labelPointStyle: () => ({ pointStyle: 'line', rotation: 0 }),
+                                labelColor: item => {
+                                    const color = item.datasetIndex === 2
+                                        ? signColor(item.parsed.y, c.positive, c.negative)
+                                        : item.dataset.borderColor;
+                                    return { borderColor: color, backgroundColor: color, borderWidth: 2 };
                                 }
                             }
                         }
                     },
                     scales: {
                         x: {
-                            type: 'timeseries',
-                            display: true,
-                            time: {
-                                tooltipFormat: 'MMM d, yyyy HH:mm'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date',
-                                font: {
-                                    family: "'DM Sans', sans-serif",
-                                    size: 12,
-                                    weight: 600
-                                },
-                                color: '#64748b'
-                            },
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 0,
-                                color: '#64748b',
-                                font: {
-                                    family: "'JetBrains Mono', monospace",
-                                    size: 10
-                                },
-                                maxTicksLimit: 10,
-                                source: 'auto'
-                            },
-                            grid: {
-                                color: 'rgba(148, 163, 184, 0.1)',
-                                drawBorder: false
-                            }
+                            type: 'time',
+                            time: { minUnit: 'day' },
+                            ticks: { color: c.muted, font: tickFont, maxRotation: 0, autoSkipPadding: 24 },
+                            grid: { display: false },
+                            border: { color: c.baseline }
+                        },
+                        yPnl: {
+                            type: 'linear',
+                            position: 'left',
+                            stack: 'panels',
+                            stackWeight: 1.4,
+                            offset: true,
+                            ticks: { color: c.muted, font: tickFont, maxTicksLimit: 5, callback: v => `${v > 0 ? '+' : ''}${v}%` },
+                            grid: { color: context => (context.tick.value === 0 ? c.baseline : c.grid) },
+                            border: { display: false }
                         },
                         y: {
                             type: 'linear',
-                            display: true,
                             position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Value ($)',
-                                font: {
-                                    family: "'DM Sans', sans-serif",
-                                    size: 12,
-                                    weight: 600
-                                },
-                                color: '#64748b'
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value.toLocaleString();
-                                },
-                                color: '#64748b',
-                                font: {
-                                    family: "'JetBrains Mono', monospace",
-                                    size: 10
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(148, 163, 184, 0.1)',
-                                drawBorder: false
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Gain/Loss ($)',
-                                font: {
-                                    family: "'DM Sans', sans-serif",
-                                    size: 12,
-                                    weight: 600
-                                },
-                                color: '#10b981'
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value.toLocaleString();
-                                },
-                                color: '#10b981',
-                                font: {
-                                    family: "'JetBrains Mono', monospace",
-                                    size: 10
-                                }
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                                drawBorder: false
-                            }
+                            stack: 'panels',
+                            stackWeight: 3,
+                            grace: '5%',
+                            ticks: { color: c.muted, font: tickFont, maxTicksLimit: 6, callback: fmtCompact },
+                            grid: { color: c.grid },
+                            border: { display: false }
                         }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
                     }
                 }
             });
         }
 
-        function updateStats() {
-            if (portfolioData.length === 0) return;
-            
-            const latest = portfolioData[portfolioData.length - 1];
-            const first = portfolioData[0];
-            
-            const currentValue = latest.totalValue;
-            const totalGain = latest.totalPnl;
-            const totalGainPercent = latest.totalPnlPercent;
-            const dataPoints = portfolioData.length;
-            
-            document.getElementById('currentValue').textContent = `$${currentValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            
-            const gainElement = document.getElementById('totalGain');
-            const gainPrefix = totalGain >= 0 ? '+' : '-';
-            gainElement.textContent = `${gainPrefix}$${Math.abs(totalGain).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            gainElement.className = `stat-value ${totalGain >= 0 ? 'positive' : 'negative'}`;
-            
-            const percentElement = document.getElementById('totalGainPercent');
-            const percentPrefix = totalGainPercent >= 0 ? '+' : '';
-            percentElement.textContent = `${percentPrefix}${totalGainPercent.toFixed(2)}%`;
-            percentElement.className = `stat-value ${totalGainPercent >= 0 ? 'positive' : 'negative'}`;
-            
-            document.getElementById('dataPoints').textContent = dataPoints;
+        function renderRange() {
+            const slice = rangeSlice(currentRange);
+            const points = key => slice.map(d => ({ x: d.timestamp.getTime(), y: d[key], d }));
+
+            chart.data.datasets[0].data = points('totalValue');
+            chart.data.datasets[1].data = points('totalCost');
+            chart.data.datasets[2].data = points('totalPnlPercent');
+            chart.update();
+
+            document.querySelectorAll('.range-btn').forEach(btn => {
+                btn.setAttribute('aria-pressed', String(btn.dataset.range === currentRange));
+            });
+
+            updateStats(slice);
+            renderTable(slice);
+        }
+
+        function setSignClass(el, n) {
+            el.classList.toggle('positive', n >= 0);
+            el.classList.toggle('negative', n < 0);
+        }
+
+        function updateStats(slice) {
+            const latest = dailyData[dailyData.length - 1];
+            const first = slice[0];
+            const label = rangeLabel(currentRange);
+
+            document.getElementById('heroValue').textContent = fmtUsd(latest.totalValue);
+
+            // P&L change over the range, so deposits into cost basis don't read as gains
+            const pnlChange = latest.totalPnl - first.totalPnl;
+            const heroDelta = document.getElementById('heroDelta');
+            heroDelta.replaceChildren();
+            const change = document.createElement('span');
+            change.textContent = `${pnlChange >= 0 ? '▲' : '▼'} ${fmtSignedUsd(pnlChange)} P&L`;
+            setSignClass(change, pnlChange);
+            const period = document.createElement('span');
+            period.className = 'muted';
+            period.textContent = ` · ${label} · as of ${fmtDate(latest.timestamp)}`;
+            heroDelta.append(change, period);
+
+            const totalGain = document.getElementById('totalGain');
+            totalGain.textContent = fmtSignedUsd(latest.totalPnl);
+            setSignClass(totalGain, latest.totalPnl);
+
+            const totalGainPercent = document.getElementById('totalGainPercent');
+            totalGainPercent.textContent = fmtPct(latest.totalPnlPercent);
+            setSignClass(totalGainPercent, latest.totalPnlPercent);
+
+            let peak = -Infinity;
+            let maxDrawdown = 0;
+            for (const d of slice) {
+                peak = Math.max(peak, d.totalPnl);
+                maxDrawdown = Math.max(maxDrawdown, peak - d.totalPnl);
+            }
+
+            const peakPnl = document.getElementById('peakPnl');
+            peakPnl.textContent = fmtSignedUsd(peak);
+            setSignClass(peakPnl, peak);
+            document.getElementById('peakPnlLabel').textContent = `Peak P&L · ${label}`;
+
+            const drawdown = document.getElementById('maxDrawdown');
+            drawdown.textContent = maxDrawdown > 0 ? fmtSignedUsd(-maxDrawdown) : '$0';
+            setSignClass(drawdown, -maxDrawdown);
+            document.getElementById('maxDrawdownLabel').textContent = `Max Drawdown · ${label}`;
+        }
+
+        function renderTable(slice) {
+            const rows = [...slice].reverse().map(d => {
+                const tr = document.createElement('tr');
+                const cells = [
+                    fmtDate(d.timestamp),
+                    fmtUsd(d.totalValue),
+                    fmtUsd(d.totalCost),
+                    fmtSignedUsd(d.totalPnl),
+                    fmtPct(d.totalPnlPercent)
+                ];
+                for (const text of cells) {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                }
+                return tr;
+            });
+            document.getElementById('historyTableBody').replaceChildren(...rows);
+        }
+
+        function initRangeControls() {
+            try {
+                const saved = localStorage.getItem('historyRange');
+                if (saved && (saved in RANGE_MONTHS || saved === 'YTD' || saved === 'ALL')) currentRange = saved;
+            } catch (e) {}
+
+            document.querySelectorAll('.range-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentRange = btn.dataset.range;
+                    try { localStorage.setItem('historyRange', currentRange); } catch (e) {}
+                    renderRange();
+                });
+            });
+
+            // Rebuild with the new token colors when the theme toggles
+            new MutationObserver(() => {
+                chart.destroy();
+                createChart();
+                renderRange();
+            }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
         }
 
         async function init() {
@@ -1032,8 +1323,10 @@
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
                 
+                dailyData = toDaily(portfolioData);
                 createChart();
-                updateStats();
+                initRangeControls();
+                renderRange();
                 initDatePickers();
                 
             } catch (error) {
